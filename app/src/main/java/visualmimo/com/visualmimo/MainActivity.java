@@ -94,9 +94,13 @@ public class MainActivity extends Activity {
                 // Set Camera resolution & fps
                 Camera.Parameters parameters=camera.getParameters();
                 List<int[]> fps = parameters.getSupportedPreviewFpsRange();
-                parameters.setPreviewFpsRange(fps.get(3)[0],fps.get(3)[1]);
+
+                //Set highest max/min fps
+                parameters.setPreviewFpsRange(fps.get(fps.size()-1)[0],fps.get(fps.size()-1)[1]);
 
                 List<Camera.Size> e = parameters.getSupportedPictureSizes();
+
+                //Get largest resolution
                 Camera.Size sizePref = e.get(0);
                 parameters.setPictureSize(sizePref.width, sizePref.height);
 
@@ -120,7 +124,8 @@ public class MainActivity extends Activity {
     }
 
 
-    SurfaceHolder.Callback surfaceCallback=new SurfaceHolder.Callback() {
+    SurfaceHolder.Callback surfaceCallback= new SurfaceHolder.Callback() {
+
         public void surfaceCreated(SurfaceHolder holder) {
             // no-op -- wait until surfaceChanged()
             // preview.
