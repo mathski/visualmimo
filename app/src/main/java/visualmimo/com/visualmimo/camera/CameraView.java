@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.Surface;
@@ -21,6 +23,8 @@ import visualmimo.com.visualmimo.persistence.FrameCache;
 public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 
     private static final String TAG = "CameraView";
+    private CameraHandlerThread thread;
+
     private FrameCache cache;
     SurfaceHolder holder;
     Camera camera;
@@ -38,14 +42,21 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         //Get camera
-        try {
-            camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
-            camera.setPreviewDisplay(holder);
-            setCameraOrientation(Camera.CameraInfo.CAMERA_FACING_BACK);
+//        try {
+//           // camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
+//            //camera.setPreviewDisplay(holder);
+//            //setCameraOrientation(Camera.CameraInfo.CAMERA_FACING_BACK);
 
-        } catch (IOException e) {
-            Log.d(TAG, "Error setting camera preview: " + e.getMessage());
-        }
+            if(thread == null)
+                thread = new CameraHandlerThread();
+
+            synchronized (thread) {
+                thread.openCamera();
+            }
+
+//        } catch (IOException e) {
+//            Log.d(TAG, "Error setting camera preview: " + e.getMessage());
+//        }
     }
 
     long beingTime = SystemClock.elapsedRealtime();
@@ -61,18 +72,23 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
             @Override
             public void onPreviewFrame(final byte[] frame, Camera camera) {
                 // Do stuff with 'data' which holds frame info.
-                int calculated_fps = (int)(1/((double)(SystemClock.elapsedRealtime()-beingTime)/1000));
-                setFPSTextView(calculated_fps);
-                beingTime = SystemClock.elapsedRealtime();
+                ((Activity) context).runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        int calculated_fps = (int) (1 / ((double) (SystemClock.elapsedRealtime() - beingTime) / 1000));
+                        setFPSTextView(calculated_fps);
+                        beingTime = SystemClock.elapsedRealtime();
+                    }
+                });
 
-                Camera.Parameters params = camera.getParameters();
+                final Camera.Parameters params = camera.getParameters();
+                ((Activity) context).runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setResolutionTextView(params.getPreviewSize());
+                    }
+                });
 
-                int[] fps_range = new int[2];
-                params.getPreviewFpsRange(fps_range);
-                if(fps_range.length > 1)
-
-
-                setResolutionTextView(params.getPreviewSize());
                 new Thread(new Runnable() {
                     public void run() {
                         cache.addFrame(frame);
@@ -173,5 +189,48 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
         bufferSize= (int)(mSize.height*mSize.width*((bitsPerPixel/(float)8)));
         buffer=new byte[bufferSize];
         return buffer;
+    }
+
+    public class CameraHandlerThread extends HandlerThread {
+        private static final String TAG = "CameraHandlerThread";
+        Handler handler = null;
+
+        public CameraHandlerThread() {
+            super("CameraHandlerThread");
+            start();
+            handler = new Handler(getLooper());
+        }
+
+        synchronized void notifyCameraOpened() {
+            notify();
+        }
+
+        public void openCamera() {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
+                        try{
+                            camera.setPreviewDisplay(holder);
+                            setCameraOrientation(Camera.CameraInfo.CAMERA_FACING_BACK);
+                        } catch(IOException ex) {
+                            Log.d(TAG, "Error setting camera preview: " + ex.getMessage());
+                        }
+                        notifyCameraOpened();
+                    }
+                    catch (RuntimeException e) {
+                        Log.e(TAG, "failed to open front camera");
+                    }
+                }
+            });
+
+            try {
+                wait();
+            }
+            catch (InterruptedException e) {
+                Log.w(TAG, "wait was interrupted");
+            }
+        }
     }
 }
