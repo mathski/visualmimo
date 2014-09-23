@@ -137,6 +137,7 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
             Camera.Size sizePref = e.get(0);
             parameters.setPreviewSize(sizePref.width, sizePref.height);
 
+            parameters.setRecordingHint(true);
             camera.setParameters(parameters);
         }
     }
