@@ -3,18 +3,16 @@ package visualmimo.com.visualmimo.persistence;
 import java.util.LinkedList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-/**
- * Created by alexiomota on 9/23/14.
- */
 public class FrameCache {
 
     private static FrameCache singleton;
     private final ReentrantReadWriteLock mRWLock;
-    private LinkedList<byte[]> buffer;
+    //Current implementation only stores 2 frames
+    private LinkedList<Frame> buffer;
 
     //Private constructor to prevent instantiation in other places other than getInstance()
     private FrameCache() {
-        buffer = new LinkedList<byte[]>();
+        buffer = new LinkedList<Frame>();
         mRWLock = new ReentrantReadWriteLock();
     }
 
@@ -24,13 +22,13 @@ public class FrameCache {
         return singleton;
     }
 
-    public void addFrame(byte[] frame) {
+    public void addFrame(byte[] frameData) {
         mRWLock.writeLock().lock();
         try{
             if(buffer.size() == 2)
                 buffer.remove(0);
 
-            buffer.add(frame);
+            buffer.add(new Frame(frameData));
         }
         finally{
             mRWLock.writeLock().unlock();
@@ -40,9 +38,9 @@ public class FrameCache {
     /**
      *
      * @param recentPosition Accepted values are currently only 0 or 1
-     * @return
+     * @return A buffered frame
      */
-    public byte[] getRecentFrame(int recentPosition) {
+    public Frame getRecentFrame(int recentPosition) {
         if( recentPosition > 1 || recentPosition < 0)
             return null;
 

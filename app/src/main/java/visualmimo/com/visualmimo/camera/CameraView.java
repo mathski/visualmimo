@@ -41,22 +41,12 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        //Get camera
-//        try {
-//           // camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
-//            //camera.setPreviewDisplay(holder);
-//            //setCameraOrientation(Camera.CameraInfo.CAMERA_FACING_BACK);
+        if(thread == null)
+            thread = new CameraHandlerThread();
 
-            if(thread == null)
-                thread = new CameraHandlerThread();
-
-            synchronized (thread) {
-                thread.openCamera();
-            }
-
-//        } catch (IOException e) {
-//            Log.d(TAG, "Error setting camera preview: " + e.getMessage());
-//        }
+        synchronized (thread) {
+            thread.openCamera();
+        }
     }
 
     long beingTime = SystemClock.elapsedRealtime();
@@ -71,13 +61,14 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 
             @Override
             public void onPreviewFrame(final byte[] frame, Camera camera) {
-                // Do stuff with 'data' which holds frame info.
+
+                final int calculated_fps = (int) (1 / ((double) (SystemClock.elapsedRealtime() - beingTime) / 1000));
+                beingTime = SystemClock.elapsedRealtime();
+
                 ((Activity) context).runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        int calculated_fps = (int) (1 / ((double) (SystemClock.elapsedRealtime() - beingTime) / 1000));
                         setFPSTextView(calculated_fps);
-                        beingTime = SystemClock.elapsedRealtime();
                     }
                 });
 
@@ -110,7 +101,9 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
         camera.release();
     }
 
-    //Set text of fps textview in activity_main.xml
+    /**
+     * Set text of fps textview in activity_main.xml
+     */
     private void setFPSTextView(int fps) {
         ((TextView) ((Activity)context).findViewById(R.id.fps_range)).setText("FPS " + fps);
     }
@@ -119,7 +112,9 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
         ((TextView) ((Activity)context).findViewById(R.id.resolution)).setText("Resolution: " + resolution.width + "-" + resolution.height);
     }
 
-    //initialize preview fps range and resolution
+    /**
+     * Initialize preview fps range and resolution
+     */
     private void initPreview() {
         if (camera!=null){
             Camera.Parameters parameters=camera.getParameters();
@@ -133,7 +128,7 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 
             //Set largest picture size
             List<Camera.Size> e = parameters.getSupportedPreviewSizes();
-            //Best resolution is first item in list
+            //Resolution in list is decreasing (ie, index 0 has best resolution
             Camera.Size sizePref = e.get(0);
             parameters.setPreviewSize(sizePref.width, sizePref.height);
 
@@ -192,6 +187,9 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
         return buffer;
     }
 
+    /**
+     * TODO - remove this and fix scoping issue
+     */
     public class CameraHandlerThread extends HandlerThread {
         private static final String TAG = "CameraHandlerThread";
         Handler handler = null;

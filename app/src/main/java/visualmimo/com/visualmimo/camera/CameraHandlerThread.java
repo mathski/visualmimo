@@ -6,7 +6,7 @@ import android.os.HandlerThread;
 import android.util.Log;
 
 /**
- * Created by alexiomota on 9/23/14.
+ * TODO - resolve scoping issue
  */
 public class CameraHandlerThread extends HandlerThread {
     private static final String TAG = "CameraHandlerThread";
