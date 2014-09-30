@@ -8,12 +8,20 @@ package visualmimo.com.visualmimo.persistence;
 public class Frame {
 
     private byte[] raw;
+    private int height;
+    private int width;
 
-    public Frame(byte[] raw) {
+    public Frame(byte[] raw, int width, int height) {
         this.raw = raw;
+        this.height = height;
+        this.width = width;
     }
 
     public byte[] getRaw() {
         return raw;
     }
+
+    public int getHeight() { return height; }
+
+    public int getWidth() { return width; }
 }

@@ -10,6 +10,12 @@
         android:layout_height="fill_parent"
         />
 
+    <FrameLayout
+        android:id="@+id/drawView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        />
+
     <TextView
         android:id="@+id/fps_range"
         android:layout_width="wrap_content"
@@ -33,5 +39,12 @@
         android:layout_alignParentBottom="true"
         android:textColor="@color/displayColor"
         android:text="Decoded data"/>
+
+    <Button
+        android:id="@+id/switch_button"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/switch_views"
+        android:onClick="switchView" />
 
 </RelativeLayout>

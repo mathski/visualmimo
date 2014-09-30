@@ -2,6 +2,7 @@ package visualmimo.com.visualmimo.camera;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.os.Handler;
@@ -40,6 +41,11 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     @Override
+    public void onDraw(Canvas canvas) {
+        Log.e("**", "Drawing");
+    }
+
+    @Override
     public void surfaceCreated(SurfaceHolder holder) {
         if(thread == null)
             thread = new CameraHandlerThread();
@@ -60,8 +66,8 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
         camera.setPreviewCallback(new Camera.PreviewCallback() {
 
             @Override
-            public void onPreviewFrame(final byte[] frame, Camera camera) {
-
+            public void onPreviewFrame(final byte[] frame, final Camera camera) {
+                //Log.e("**", "callback");
                 final int calculated_fps = (int) (1 / ((double) (SystemClock.elapsedRealtime() - beingTime) / 1000));
                 beingTime = SystemClock.elapsedRealtime();
 
@@ -82,7 +88,7 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 
                 new Thread(new Runnable() {
                     public void run() {
-                        cache.addFrame(frame);
+                        cache.addFrame(frame, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height);
                     }
                 }).start();
                 camera.addCallbackBuffer(previewBuffer());
@@ -133,6 +139,8 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
             parameters.setPreviewSize(sizePref.width, sizePref.height);
 
             parameters.setRecordingHint(true);
+
+            parameters.setWhiteBalance(Camera.Parameters.WHITE_BALANCE_FLUORESCENT);
             camera.setParameters(parameters);
         }
     }
