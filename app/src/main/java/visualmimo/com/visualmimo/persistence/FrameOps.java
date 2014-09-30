@@ -28,10 +28,8 @@ public class FrameOps {
         boolean increase = true;
         for(int i = 0; i < raw.length; i++){
             if(increase) {
-                if(!(raw[i] + 10 > 255)) {
                     raw[i] *= 10;
                     increase = false;
-                }
             } else {
                 increase = true;
             }
@@ -50,8 +48,9 @@ public class FrameOps {
             len = normal.length;
 
         byte[] sub = new byte[len];
+
         for(int i = 0 ; i < len; i++){
-            sub[i] = (byte)( (intensified[i]) + normal[i]);
+            sub[i] = (byte)( (intensified[i]) - normal[i]);
         }
 
         return new Frame(sub, x.getWidth(), x.getHeight());
