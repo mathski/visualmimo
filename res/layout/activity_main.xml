@@ -1,0 +1,50 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.android.visualmimo.MainActivity" >
+
+    <FrameLayout
+        android:id="@+id/cameraView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        />
+
+    <FrameLayout
+        android:id="@+id/drawView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        />
+
+    <TextView
+        android:id="@+id/fps_range"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:layout_above="@+id/resolution"
+        android:textColor="@color/displayColor"
+        android:text="FPS"/>
+
+    <TextView
+        android:id="@+id/resolution"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:layout_above="@+id/decoded_data"
+        android:textColor="@color/displayColor"
+        android:text="Resolution:"/>
+
+    <TextView
+        android:id="@+id/decoded_data"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:textColor="@color/displayColor"
+        android:text="Decoded data"/>
+
+    <Button
+        android:id="@+id/switch_button"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/switch_views"
+        android:onClick="switchView" />
+
+</RelativeLayout>
