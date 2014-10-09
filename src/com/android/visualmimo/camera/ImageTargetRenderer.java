@@ -28,7 +28,7 @@ import com.qualcomm.vuforia.samples.SampleApplication.SampleApplicationSession;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.LoadingDialogHandler;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.SampleUtils;
 
-import com.android.visualmimo.ImageTargets;
+import com.android.visualmimo.MainActivity;
 
 
 // The renderer class for the ImageTargets sample. 
@@ -37,7 +37,7 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer
     private static final String LOGTAG = "ImageTargetRenderer";
     
     private SampleApplicationSession vuforiaAppSession;
-    private ImageTargets mActivity;
+    private MainActivity mActivity;
     
     private int shaderProgramID;
     
@@ -48,7 +48,7 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer
     private static final float OBJECT_SCALE_FLOAT = 3.0f;
     
     
-    public ImageTargetRenderer(ImageTargets activity,
+    public ImageTargetRenderer(MainActivity activity,
         SampleApplicationSession session)
     {
         mActivity = activity;

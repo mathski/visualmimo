@@ -28,7 +28,7 @@ import com.qualcomm.vuforia.VideoBackgroundConfig;
 import com.qualcomm.vuforia.VideoMode;
 import com.qualcomm.vuforia.Vuforia;
 import com.qualcomm.vuforia.Vuforia.UpdateCallbackInterface;
-import com.android.visualmimo.ImageTargets;
+import com.android.visualmimo.MainActivity;
 
 
 public class SampleApplicationSession implements UpdateCallbackInterface
@@ -38,7 +38,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
     
     // Reference to the current activity
     private Activity mActivity;
-    private ImageTargets mSessionControl;
+    private MainActivity mSessionControl;
     
     // Flags
     private boolean mStarted = false;
@@ -71,7 +71,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
     private boolean mIsPortrait = false;
     
     
-    public SampleApplicationSession(ImageTargets sessionControl)
+    public SampleApplicationSession(MainActivity sessionControl)
     {
         mSessionControl = sessionControl;
     }
