@@ -59,3 +59,5 @@ proguard/
 # Log Files
 *.log
 
+# NDK file that holds absolute filepaths
+obj/local/armeabi/objs/ndk1/native.o.d

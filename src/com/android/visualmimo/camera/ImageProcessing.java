@@ -126,8 +126,14 @@ public class ImageProcessing extends Thread {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		YuvImage yuvImage = new YuvImage(result_frame.getRaw(), ImageFormat.NV21, result_frame.getWidth(), result_frame.getHeight(), null);
 		yuvImage.compressToJpeg(new Rect(0, 0, result_frame.getWidth(), result_frame.getHeight()), 50, out);
-        byte[] imageBytes = out.toByteArray();
-        output = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+		byte[] imageBytes = out.toByteArray();
+		
+		// recycle old bitmaps for performance
+		if (output != null) {
+			output.recycle();
+		}
+		
+		output = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
 		synchronized ( lockGui ) {
 			Bitmap tmp = output;
 			output = outputMap;
