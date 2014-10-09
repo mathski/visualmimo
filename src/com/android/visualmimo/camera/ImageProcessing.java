@@ -17,7 +17,7 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 
-import com.android.visualmimo.persistence.Frame;
+import com.android.visualmimo.persistence.MIMOFrame;
 import com.android.visualmimo.persistence.FrameOps;
 
 public class ImageProcessing extends Thread {
@@ -111,8 +111,8 @@ public class ImageProcessing extends Thread {
 		this.currentType = type;
 	}
 	
-	public void process(Frame first_frame, Frame second) {
-		Frame result_frame;
+	public void process(MIMOFrame first_frame, MIMOFrame second) {
+		MIMOFrame result_frame;
 		if( currentType == "Subtraction") {
 			Log.e("??", "& Processing is subtracting!!");
 		//second = FrameOps.intensify(second);
@@ -148,9 +148,9 @@ public class ImageProcessing extends Thread {
 		}
 	}
 	
-	Frame image;
-	Frame second_image;
-	public void convertPreview(Frame first_frame, Frame second_frame, Camera camera) {
+	MIMOFrame image;
+	MIMOFrame second_image;
+	public void convertPreview(MIMOFrame first_frame, MIMOFrame second_frame, Camera camera) {
 		if( thread == null )
 			return;
 		
@@ -176,8 +176,8 @@ public class ImageProcessing extends Thread {
 		}
 	}
 
-    Frame image2;
-    Frame image3;
+    MIMOFrame image2;
+    MIMOFrame image3;
 	@Override
 	public void run() {
 		thread = Thread.currentThread();
@@ -191,11 +191,11 @@ public class ImageProcessing extends Thread {
 			}
 			
 			synchronized ( lockConvert ) {
-				Frame tmp = image;
+				MIMOFrame tmp = image;
 				image = image2;
 				image2 = tmp;
 				
-				Frame tmp2 = second_image;
+				MIMOFrame tmp2 = second_image;
 				second_image = image3;
 				image3 = tmp2;
 			}

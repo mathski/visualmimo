@@ -4,7 +4,7 @@ public class FrameOps {
 	
 
     //For Subtraction
-    public static Frame intensify(Frame frame) {
+    public static MIMOFrame intensify(MIMOFrame frame) {
         byte[] raw = frame.getRaw();
 
         boolean increase = true;
@@ -19,11 +19,11 @@ public class FrameOps {
             }
         }
 
-        return new Frame(raw, frame.getWidth(), frame.getHeight());
+        return new MIMOFrame(raw, frame.getWidth(), frame.getHeight());
     }
 
     //For division
-    public static Frame scale(Frame frame) {
+    public static MIMOFrame scale(MIMOFrame frame) {
         byte[] raw = frame.getRaw();
 
         boolean increase = true;
@@ -38,10 +38,10 @@ public class FrameOps {
             }
         }
 
-        return new Frame(raw, frame.getWidth(), frame.getHeight());
+        return new MIMOFrame(raw, frame.getWidth(), frame.getHeight());
     }
 
-    public static Frame frameSubtraction(Frame x, Frame y) {
+    public static MIMOFrame frameSubtraction(MIMOFrame x, MIMOFrame y) {
 
         byte[] normal =  x.getRaw();
         byte[] intensified = y.getRaw();
@@ -76,7 +76,7 @@ public class FrameOps {
         }
         
   		 
-        return new Frame(sub, x.getWidth(), x.getHeight());
+        return new MIMOFrame(sub, x.getWidth(), x.getHeight());
     }
     
     
@@ -105,7 +105,7 @@ public class FrameOps {
     
     
 
-    public static Frame frameDivision(Frame x, Frame y) {
+    public static MIMOFrame frameDivision(MIMOFrame x, MIMOFrame y) {
         byte[] normal =  x.getRaw();
         byte[] intensified = y.getRaw();
 
@@ -143,7 +143,7 @@ public class FrameOps {
             
         }
 
-        return new Frame(div, x.getWidth(), x.getHeight());
+        return new MIMOFrame(div, x.getWidth(), x.getHeight());
     }
 }
 

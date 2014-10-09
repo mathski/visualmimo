@@ -8,12 +8,12 @@ public class FrameCache {
     private static FrameCache singleton;
     private final ReentrantReadWriteLock mRWLock;
     //Current implementation only stores 2 frames
-    private LinkedList<Frame> buffer;
+    private LinkedList<MIMOFrame> buffer;
     private volatile boolean changed;
 
     //Private constructor to prevent instantiation in other places other than getInstance()
     private FrameCache() {
-        buffer = new LinkedList<Frame>();
+        buffer = new LinkedList<MIMOFrame>();
         mRWLock = new ReentrantReadWriteLock();
     }
 
@@ -29,7 +29,7 @@ public class FrameCache {
             if(buffer.size() == 2)
                 buffer.remove(0);
 
-            buffer.add(new Frame(frameData, width, height));
+            buffer.add(new MIMOFrame(frameData, width, height));
             changed = true;
         }
         finally{
@@ -42,7 +42,7 @@ public class FrameCache {
      * @param recentPosition Accepted values are currently only 0 or 1
      * @return A buffered frame
      */
-    public Frame getRecentFrame(int recentPosition) {
+    public MIMOFrame getRecentFrame(int recentPosition) {
         if( recentPosition >= buffer.size()) {
             //Log.e("*","Return null");
             return null;

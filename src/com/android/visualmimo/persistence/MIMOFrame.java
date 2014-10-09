@@ -5,13 +5,13 @@ package com.android.visualmimo.persistence;
  * TODO: add Vuforia data, static methods.
  * @author revan
  */
-public class Frame {
+public class MIMOFrame {
 
     private byte[] raw;
     private int height;
     private int width;
 
-    public Frame(byte[] raw, int width, int height) {
+    public MIMOFrame(byte[] raw, int width, int height) {
         this.raw = raw;
         this.height = height;
         this.width = width;

@@ -17,7 +17,7 @@ import android.view.SurfaceView;
 import java.io.ByteArrayOutputStream;
 import java.util.Random;
 
-import com.android.visualmimo.persistence.Frame;
+import com.android.visualmimo.persistence.MIMOFrame;
 import com.android.visualmimo.persistence.FrameCache;
 import com.android.visualmimo.persistence.FrameOps;
 

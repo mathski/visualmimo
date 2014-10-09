@@ -17,6 +17,7 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.Log;
 
+import com.qualcomm.vuforia.CameraDevice;
 import com.qualcomm.vuforia.Matrix44F;
 import com.qualcomm.vuforia.Renderer;
 import com.qualcomm.vuforia.State;
@@ -27,7 +28,6 @@ import com.qualcomm.vuforia.VIDEO_BACKGROUND_REFLECTION;
 import com.qualcomm.vuforia.samples.SampleApplication.SampleApplicationSession;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.LoadingDialogHandler;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.SampleUtils;
-
 import com.android.visualmimo.MainActivity;
 
 
@@ -46,7 +46,6 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer
     public boolean mIsActive = false;
     
     private static final float OBJECT_SCALE_FLOAT = 3.0f;
-    
     
     public ImageTargetRenderer(MainActivity activity,
         SampleApplicationSession session)
@@ -139,9 +138,11 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer
             textureIndex = trackable.getName().equalsIgnoreCase("tarmac") ? 2
                 : textureIndex;
             
-            //debug prints
+            
+            //NOTE(revan): debug prints
             Log.d(LOGTAG, "Pose: " + result.getPose());
             Log.d(LOGTAG, "modelViewMatrix: " + modelViewMatrix);
+            
             
             for (int i = 0; i < modelViewMatrix.length; i++) {
             	System.out.print(modelViewMatrix[i] + " ");

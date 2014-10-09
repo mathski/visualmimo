@@ -7,6 +7,7 @@ and other countries. Trademarks of QUALCOMM Incorporated are used with permissio
 
 package com.android.visualmimo;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -32,9 +33,13 @@ import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import com.qualcomm.QCAR.QCAR;
 import com.qualcomm.vuforia.CameraDevice;
 import com.qualcomm.vuforia.DataSet;
+import com.qualcomm.vuforia.Frame;
+import com.qualcomm.vuforia.Image;
 import com.qualcomm.vuforia.ImageTracker;
+import com.qualcomm.vuforia.PIXEL_FORMAT;
 import com.qualcomm.vuforia.State;
 import com.qualcomm.vuforia.STORAGE_TYPE;
 import com.qualcomm.vuforia.Trackable;
@@ -50,6 +55,7 @@ import com.android.visualmimo.camera.CameraView;
 import com.android.visualmimo.camera.DrawView;
 import com.android.visualmimo.camera.ImageProcessing;
 import com.android.visualmimo.camera.ImageTargetRenderer;
+import com.android.visualmimo.persistence.FrameCache;
 
 public class MainActivity extends Activity
 {
@@ -74,7 +80,6 @@ public class MainActivity extends Activity
     private boolean mSwitchDatasetAsap = false;
     private boolean mFlash = false;
     private boolean mContAutofocus = false;
-    private boolean mExtendedTracking = false;
     
     private View mFlashOptionView;
     
@@ -89,6 +94,9 @@ public class MainActivity extends Activity
     private int originalWidth;
     private Button switchButton;
     ImageProcessing processor;
+    
+    /** FrameCache to which we add Frames as they come. */
+    private FrameCache cache;
     
     private int viewStatus = 0;
     
@@ -119,6 +127,8 @@ public class MainActivity extends Activity
         drawView.setProcessor(processor);
         cameraView.setImageProcessor(processor);
         
+        cache = FrameCache.getInstance();
+        
         vuforiaAppSession = new SampleApplicationSession(this);
         
         startLoadingAnimation();
@@ -129,7 +139,6 @@ public class MainActivity extends Activity
             .initAR(this, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         
         mGestureDetector = new GestureDetector(this, new GestureListener());
-        
     }
     
     // Process Single Tap event to trigger autofocus
@@ -190,9 +199,9 @@ public class MainActivity extends Activity
             mGlView.onResume();
         }
         
-        getViewSize();
-        viewStatus = 0;
-        switchView(null);
+//        getViewSize();
+//        viewStatus = 0;
+//        switchView(null);
     }
     
     
@@ -330,10 +339,6 @@ public class MainActivity extends Activity
         for (int count = 0; count < numTrackables; count++)
         {
             Trackable trackable = mCurrentDataset.getTrackable(count);
-            if(isExtendedTrackingActive())
-            {
-                trackable.startExtendedTracking();
-            }
             
             String name = "Current Dataset : " + trackable.getName();
             trackable.setUserData(name);
@@ -421,6 +426,42 @@ public class MainActivity extends Activity
     
     public void onQCARUpdate(State state)
     {
+        //NOTE(revan): debug prints
+    	Frame frame = state.getFrame();
+    	Image image = null;
+    	for (int i = 0; i < frame.getNumImages(); i++) {
+    		System.out.println("Image " + i);
+    		Image temp = frame.getImage(i);
+    		if (temp.getFormat() == PIXEL_FORMAT.RGB888) {
+        		image = temp;
+        		break;
+    		}
+    	}
+    		
+		if (image == null) {
+			System.out.println("Unable to get image in RGB888.");
+			return;
+		}
+		
+		ByteBuffer pixels = image.getPixels();
+        final byte[] pixelArray = new byte[pixels.remaining()];
+        pixels.get(pixelArray, 0, pixelArray.length);
+        final int imageWidth = image.getWidth();
+        final int imageHeight = image.getHeight();
+        final int stride = image.getStride();
+        System.out.println("Image width: " + imageWidth);
+        System.out.println("Image height: " + imageHeight);
+        System.out.println("Image stride: " + stride);
+        System.out.println("First pixel byte: " + pixelArray[0]);
+        
+        //Add frame to FrameCache.
+        new Thread(new Runnable() {
+            public void run() {
+                cache.addFrame(pixelArray, imageWidth, imageHeight);
+            }
+        }).start();
+        
+    	
         if (mSwitchDatasetAsap)
         {
             mSwitchDatasetAsap = false;
@@ -508,12 +549,6 @@ public class MainActivity extends Activity
     public boolean onTouchEvent(MotionEvent event)
     {
         return mGestureDetector.onTouchEvent(event);
-    }
-    
-    
-    boolean isExtendedTrackingActive()
-    {
-        return mExtendedTracking;
     }
     
     final public static int CMD_BACK = -1;
