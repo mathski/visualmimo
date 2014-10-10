@@ -57,6 +57,11 @@ import com.android.visualmimo.camera.ImageProcessing;
 import com.android.visualmimo.camera.ImageTargetRenderer;
 import com.android.visualmimo.persistence.FrameCache;
 
+/**
+ * Activity that handles everything: Vuforia, UI.
+ * @author alexio, revan
+ *
+ */
 public class MainActivity extends Activity
 {
     private static final String LOGTAG = "ImageTargets";
@@ -89,7 +94,7 @@ public class MainActivity extends Activity
     
     private FrameLayout layout;
     private DrawView drawView;
-    private CameraView cameraView;
+//    private CameraView cameraView;
     private int originalHeight;
     private int originalWidth;
     private Button switchButton;
@@ -113,19 +118,23 @@ public class MainActivity extends Activity
         Log.d(LOGTAG, "onCreate");
         super.onCreate(savedInstanceState);
         
+        setContentView(R.layout.activity_main);
+        
         layout = (FrameLayout) findViewById(R.id.cameraView);
         switchButton = (Button) findViewById(R.id.switch_button);
         
-        cameraView = new CameraView(this);
+        //NOTE(revan): Vuforia handles the video output on its own, so I don't
+        //             think we need the cameraView any more. 
+//        cameraView = new CameraView(this);
         drawView = new DrawView(this);
 
-//        layout.addView(drawView);
+        layout.addView(drawView);
 //        layout.addView(cameraView);
-//        layout.bringChildToFront(cameraView);
+        layout.bringChildToFront(drawView);
         processor = new ImageProcessing();
         processor.setContext(this);
         drawView.setProcessor(processor);
-        cameraView.setImageProcessor(processor);
+//        cameraView.setImageProcessor(processor);
         
         cache = FrameCache.getInstance();
         
@@ -141,7 +150,7 @@ public class MainActivity extends Activity
         mGestureDetector = new GestureDetector(this, new GestureListener());
     }
     
-    // Process Single Tap event to trigger autofocus
+    /** GestureListener for tap to focus. */
     private class GestureListener extends
         GestureDetector.SimpleOnGestureListener
     {
@@ -177,7 +186,6 @@ public class MainActivity extends Activity
         }
     }
     
-    // Called when the activity will start interacting with the user.
     @Override
     protected void onResume()
     {
@@ -200,12 +208,11 @@ public class MainActivity extends Activity
         }
         
 //        getViewSize();
-//        viewStatus = 0;
-//        switchView(null);
+        viewStatus = 0;
+        switchView(null);
     }
     
-    
-    // Callback for configuration changes the activity handles itself
+    /**This helps avoid the app dying when settings change.*/
     @Override
     public void onConfigurationChanged(Configuration config)
     {
@@ -215,8 +222,6 @@ public class MainActivity extends Activity
         vuforiaAppSession.onConfigurationChanged();
     }
     
-    
-    // Called when the system is about to start resuming a previous activity.
     @Override
     protected void onPause()
     {
@@ -252,8 +257,6 @@ public class MainActivity extends Activity
         processor.stopProcessing();
     }
     
-    
-    // The final call you receive before your activity is destroyed.
     @Override
     protected void onDestroy()
     {
@@ -271,8 +274,7 @@ public class MainActivity extends Activity
         System.gc();
     }
     
-    
-    // Initializes AR application components.
+    /**Initializes AR application components.*/
     private void initApplicationAR()
     {
         // Create OpenGL ES view:
@@ -288,7 +290,6 @@ public class MainActivity extends Activity
         
     }
     
-    
     private void startLoadingAnimation()
     {
         LayoutInflater inflater = LayoutInflater.from(this);
@@ -296,7 +297,8 @@ public class MainActivity extends Activity
             null, false);
         
         mUILayout.setVisibility(View.VISIBLE);
-        mUILayout.setBackgroundColor(Color.BLACK);
+//        mUILayout.setBackgroundColor(Color.BLACK);
+        mUILayout.setBackgroundColor(Color.TRANSPARENT);
         
         // Gets a reference to the loading dialog
         loadingDialogHandler.mLoadingDialogContainer = mUILayout
@@ -311,8 +313,6 @@ public class MainActivity extends Activity
             LayoutParams.MATCH_PARENT));
     }
     
-    
-    // Methods to load and destroy tracking data.
     public boolean doLoadTrackersData()
     {
         TrackerManager tManager = TrackerManager.getInstance();
@@ -349,7 +349,6 @@ public class MainActivity extends Activity
         return true;
     }
     
-    
     public boolean doUnloadTrackersData()
     {
         // Indicate if the trackers were unloaded correctly
@@ -377,7 +376,6 @@ public class MainActivity extends Activity
         
         return result;
     }
-    
     
     public void onInitARDone(SampleApplicationException exception)
     {
@@ -423,10 +421,9 @@ public class MainActivity extends Activity
         }
     }
     
-    
+    /** Create new MIMOFrame, add to FrameCache. */
     public void onQCARUpdate(State state)
     {
-        //NOTE(revan): debug prints
     	Frame frame = state.getFrame();
     	Image image = null;
     	for (int i = 0; i < frame.getNumImages(); i++) {
@@ -449,6 +446,8 @@ public class MainActivity extends Activity
         final int imageWidth = image.getWidth();
         final int imageHeight = image.getHeight();
         final int stride = image.getStride();
+        
+        //NOTE(revan): debug prints
         System.out.println("Image width: " + imageWidth);
         System.out.println("Image height: " + imageHeight);
         System.out.println("Image stride: " + stride);
@@ -480,7 +479,6 @@ public class MainActivity extends Activity
         }
     }
     
-    
     public boolean doInitTrackers()
     {
         // Indicate if the trackers were initialized correctly
@@ -504,7 +502,6 @@ public class MainActivity extends Activity
         return result;
     }
     
-    
     public boolean doStartTrackers()
     {
         // Indicate if the trackers were started correctly
@@ -517,7 +514,6 @@ public class MainActivity extends Activity
         
         return result;
     }
-    
     
     public boolean doStopTrackers()
     {
@@ -532,7 +528,6 @@ public class MainActivity extends Activity
         return result;
     }
     
-    
     public boolean doDeinitTrackers()
     {
         // Indicate if the trackers were deinitialized correctly
@@ -543,7 +538,6 @@ public class MainActivity extends Activity
         
         return result;
     }
-    
     
     @Override
     public boolean onTouchEvent(MotionEvent event)
@@ -559,10 +553,10 @@ public class MainActivity extends Activity
     final public static int CMD_CAMERA_REAR = 5;
     final public static int CMD_DATASET_START_INDEX = 6;
     
-    public void getViewSize() {
-        originalHeight = cameraView.getLayoutParams().height;
-        originalWidth = cameraView.getLayoutParams().width;
-    }
+//    public void getViewSize() {
+//        originalHeight = cameraView.getLayoutParams().height;
+//        originalWidth = cameraView.getLayoutParams().width;
+//    }
 
     public void drawViewSize(int width, int height) {
         drawView.getLayoutParams().height = height;
@@ -570,37 +564,45 @@ public class MainActivity extends Activity
         drawView.requestLayout();
     }
 
-    public void cameraViewSize(int width, int height) {
-        cameraView.getLayoutParams().height = height;
-        cameraView.getLayoutParams().width = width;
-        cameraView.requestLayout();
-    }
+//    public void cameraViewSize(int width, int height) {
+//        cameraView.getLayoutParams().height = height;
+//        cameraView.getLayoutParams().width = width;
+//        cameraView.requestLayout();
+//    }
     
     public void displayCamera() {
-    	cameraViewSize(originalWidth, originalHeight);
+//    	cameraViewSize(originalWidth, originalHeight);
+    	//NOTE(revan): I think we can set visibility instead of resizing, right?
+    	mGlView.setVisibility(View.VISIBLE);
         drawViewSize(0,0);
         switchButton.setText("Camera");
     }
     
     public void displayDrawView() {
-    	cameraViewSize(0, 0);
+//    	cameraViewSize(0, 0);
+    	mGlView.setVisibility(View.INVISIBLE);
         drawViewSize(originalWidth, originalHeight);
         switchButton.setText(drawView.getProcessingType());
     }
 
+    /**
+     * Called when button is pressed, cycles between video types.
+     * NOTE(revan): this may be broken.
+     */ 
     public void switchView(View view) {
-
         switch(viewStatus) {
             case 0: //Camera
             	Log.e("&", "& Camera");
                 displayCamera();
                 viewStatus++;
+                showToast("Camera");
                 break;
             case 1:
             	drawView.setProcessingType(DrawView.ProcessingType.Subtraction);
             	Log.e("&", "&" + drawView.getProcessingType());
                 displayDrawView();
                 viewStatus++;
+                showToast("Subtraction");
                 break;
             default:
             	
@@ -608,6 +610,7 @@ public class MainActivity extends Activity
             	Log.e("&", "& " + drawView.getProcessingType());
             	displayDrawView();
             	viewStatus = 0;
+            	showToast("Division");
             	break;
         }
     }

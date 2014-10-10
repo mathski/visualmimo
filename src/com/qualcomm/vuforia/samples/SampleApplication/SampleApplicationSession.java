@@ -29,8 +29,11 @@ import com.qualcomm.vuforia.VideoMode;
 import com.qualcomm.vuforia.Vuforia;
 import com.qualcomm.vuforia.Vuforia.UpdateCallbackInterface;
 import com.android.visualmimo.MainActivity;
+import com.android.visualmimo.persistence.MIMOFrame;
 
-
+/**
+ * This file is straight from the Vuforia samples, handles stuff behing the scenes.
+ */
 public class SampleApplicationSession implements UpdateCallbackInterface
 {
     
@@ -178,7 +181,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
                 SampleApplicationException.CAMERA_INITIALIZATION_FAILURE, error);
         }
         
-        Vuforia.setFrameFormat(PIXEL_FORMAT.RGB888, true);
+        Vuforia.setFrameFormat(MIMOFrame.IMAGE_FORMAT, true);
         
         setProjectionMatrix();
         

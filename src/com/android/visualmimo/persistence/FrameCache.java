@@ -3,6 +3,10 @@ package com.android.visualmimo.persistence;
 import java.util.LinkedList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/**
+ * Singleton that keeps track of the n most recent MIMOFrames.
+ * @author alexio
+ */
 public class FrameCache {
 
     private static FrameCache singleton;

@@ -1,5 +1,10 @@
 package com.android.visualmimo.persistence;
 
+/** 
+ * Utility methods for manipulating MIMOFrames
+ * Can be merged into MIMOFrame.
+ * @author
+ */
 public class FrameOps {
 	
 

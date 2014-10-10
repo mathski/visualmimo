@@ -20,6 +20,11 @@ import android.view.View;
 import com.android.visualmimo.persistence.MIMOFrame;
 import com.android.visualmimo.persistence.FrameOps;
 
+/**
+ * Attached to drawview, handles subtraction and division of MIMOFrames and
+ * preparation for output.
+ * @author alexio
+ */
 public class ImageProcessing extends Thread {
 	
 	volatile boolean stopRequest = false;
@@ -123,6 +128,7 @@ public class ImageProcessing extends Thread {
 			result_frame = FrameOps.frameDivision(first_frame, second);
 		}
 		
+		//TODO(revan): pretty sure I broke this by changing the the image format to RGB888.
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		YuvImage yuvImage = new YuvImage(result_frame.getRaw(), ImageFormat.NV21, result_frame.getWidth(), result_frame.getHeight(), null);
 		yuvImage.compressToJpeg(new Rect(0, 0, result_frame.getWidth(), result_frame.getHeight()), 50, out);
