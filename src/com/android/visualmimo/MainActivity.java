@@ -7,16 +7,21 @@ and other countries. Trademarks of QUALCOMM Incorporated are used with permissio
 
 package com.android.visualmimo;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Vector;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -40,11 +45,14 @@ import com.qualcomm.vuforia.Frame;
 import com.qualcomm.vuforia.Image;
 import com.qualcomm.vuforia.ImageTracker;
 import com.qualcomm.vuforia.PIXEL_FORMAT;
+import com.qualcomm.vuforia.Renderer;
 import com.qualcomm.vuforia.State;
 import com.qualcomm.vuforia.STORAGE_TYPE;
 import com.qualcomm.vuforia.Trackable;
 import com.qualcomm.vuforia.Tracker;
 import com.qualcomm.vuforia.TrackerManager;
+import com.qualcomm.vuforia.VIDEO_BACKGROUND_REFLECTION;
+import com.qualcomm.vuforia.VideoBackgroundConfig;
 import com.qualcomm.vuforia.Vuforia;
 import com.qualcomm.vuforia.samples.SampleApplication.SampleApplicationException;
 import com.qualcomm.vuforia.samples.SampleApplication.SampleApplicationSession;
@@ -56,6 +64,7 @@ import com.android.visualmimo.camera.DrawView;
 import com.android.visualmimo.camera.ImageProcessing;
 import com.android.visualmimo.camera.ImageTargetRenderer;
 import com.android.visualmimo.persistence.FrameCache;
+import com.android.visualmimo.persistence.MIMOFrame;
 
 /**
  * Activity that handles everything: Vuforia, UI.
@@ -64,6 +73,11 @@ import com.android.visualmimo.persistence.FrameCache;
  */
 public class MainActivity extends Activity
 {
+	/** The number of images to save when we are recording.*/
+    private static final int NUM_SAVES = 100;
+    private int saveCount = 0;
+    private boolean recordingMode = true;
+    
     private static final String LOGTAG = "ImageTargets";
     
     SampleApplicationSession vuforiaAppSession;
@@ -426,10 +440,13 @@ public class MainActivity extends Activity
     {
     	Frame frame = state.getFrame();
     	Image image = null;
+    	
+    	//NOTE(revan): Vuforia is weird and gives back a whole bunch of formats.
+    	//Loop to get right one.
     	for (int i = 0; i < frame.getNumImages(); i++) {
     		System.out.println("Image " + i);
     		Image temp = frame.getImage(i);
-    		if (temp.getFormat() == PIXEL_FORMAT.RGB888) {
+    		if (temp.getFormat() == MIMOFrame.IMAGE_FORMAT) {
         		image = temp;
         		break;
     		}
@@ -459,7 +476,30 @@ public class MainActivity extends Activity
                 cache.addFrame(pixelArray, imageWidth, imageHeight);
             }
         }).start();
-        
+                
+        if(recordingMode) {
+        	saveCount++;
+        	if (saveCount < NUM_SAVES) {
+		        //Queue file write.
+        		new Thread(new Runnable() {
+        			public void run() {
+						String filePath = "/sdcard/vmimo" + saveCount + ".rgb888";
+						System.out.println(filePath);
+						File file = new File(filePath);
+						try {
+							file.delete();
+							file.createNewFile();
+							FileOutputStream stream = new FileOutputStream(file);
+							stream.write(pixelArray);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+        			}
+        		}).start();
+        	} else {
+        		recordingMode = false;
+        	}
+        }
     	
         if (mSwitchDatasetAsap)
         {

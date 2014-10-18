@@ -142,8 +142,6 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer
             //NOTE(revan): debug prints
             Log.d(LOGTAG, "Pose: " + result.getPose());
             Log.d(LOGTAG, "modelViewMatrix: " + modelViewMatrix);
-            
-            
             for (int i = 0; i < modelViewMatrix.length; i++) {
             	System.out.print(modelViewMatrix[i] + " ");
             }
