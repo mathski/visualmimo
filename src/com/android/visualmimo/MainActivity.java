@@ -28,6 +28,9 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
@@ -74,9 +77,11 @@ import com.android.visualmimo.persistence.MIMOFrame;
 public class MainActivity extends Activity
 {
 	/** The number of images to save when we are recording.*/
-    private static final int NUM_SAVES = 100;
+    private static final int NUM_SAVES = 50;
     private int saveCount = 0;
-    private boolean recordingMode = true;
+    private boolean recordingMode = false;
+    private static final String savePath = "/sdcard/vmimo/";
+    private String saveDir;
     
     private static final String LOGTAG = "ImageTargets";
     
@@ -288,6 +293,15 @@ public class MainActivity extends Activity
         System.gc();
     }
     
+    /** Adds ActionBar items. */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu items for use in the action bar
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+    
     /**Initializes AR application components.*/
     private void initApplicationAR()
     {
@@ -483,8 +497,7 @@ public class MainActivity extends Activity
 		        //Queue file write.
         		new Thread(new Runnable() {
         			public void run() {
-						String filePath = "/sdcard/vmimo" + saveCount + ".rgb888";
-						System.out.println(filePath);
+						String filePath = savePath + saveDir + "/" + saveCount + ".rgb888";
 						File file = new File(filePath);
 						try {
 							file.delete();
@@ -498,6 +511,7 @@ public class MainActivity extends Activity
         		}).start();
         	} else {
         		recordingMode = false;
+        		showToast("Done saving burst.");
         	}
         }
     	
@@ -652,6 +666,30 @@ public class MainActivity extends Activity
             	viewStatus = 0;
             	showToast("Division");
             	break;
+        }
+    }
+    
+    /** Handles ActionBar presses. */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle presses on the action bar items
+        switch (item.getItemId()) {
+            case R.id.action_save:
+            	//enable recording mode
+                recordingMode = true;
+                
+                //save to folder of current system time
+                saveDir = "" + System.currentTimeMillis();
+                new File(savePath + saveDir).mkdirs();
+                
+                saveCount = 0;
+                
+                return true;
+            case R.id.action_settings:
+                //TODO
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
     
