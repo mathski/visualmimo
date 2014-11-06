@@ -17,7 +17,11 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.Log;
 
+import com.qualcomm.QCAR.QCAR;
+import com.qualcomm.vuforia.CameraCalibration;
 import com.qualcomm.vuforia.CameraDevice;
+import com.qualcomm.vuforia.ImageTarget;
+import com.qualcomm.vuforia.ImageTargetBuilder;
 import com.qualcomm.vuforia.Matrix44F;
 import com.qualcomm.vuforia.Renderer;
 import com.qualcomm.vuforia.State;
@@ -25,6 +29,8 @@ import com.qualcomm.vuforia.Tool;
 import com.qualcomm.vuforia.Trackable;
 import com.qualcomm.vuforia.TrackableResult;
 import com.qualcomm.vuforia.VIDEO_BACKGROUND_REFLECTION;
+import com.qualcomm.vuforia.Vec2F;
+import com.qualcomm.vuforia.Vec3F;
 import com.qualcomm.vuforia.samples.SampleApplication.SampleApplicationSession;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.LoadingDialogHandler;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.SampleUtils;
@@ -139,9 +145,55 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer
                 : textureIndex;
             
             
+            //extract corners of trackable
+            //adapted from https://developer.vuforia.com/forum/android/get-trackable-angle
+            ImageTarget imageTarget = (ImageTarget) trackable;
+            Vec2F targetSize = imageTarget.getSize();
+            
+            float halfWidth = targetSize.getData()[0] / 2.0f;
+            float halfHeight = targetSize.getData()[1] / 2.0f;
+            
+            CameraCalibration cameraCalibration = CameraDevice.getInstance().getCameraCalibration();
+
+            Vec2F v1 = Tool.projectPoint(cameraCalibration, result.getPose(), new Vec3F(-halfWidth, halfHeight, 0));
+            Vec2F v2 = Tool.projectPoint(cameraCalibration, result.getPose(), new Vec3F(halfWidth, halfHeight, 0));
+            Vec2F v3 = Tool.projectPoint(cameraCalibration, result.getPose(), new Vec3F(halfWidth, -halfHeight, 0));
+            Vec2F v4 = Tool.projectPoint(cameraCalibration, result.getPose(), new Vec3F(-halfWidth, -halfHeight, 0));
+            
+            Log.d(LOGTAG, "Corners:");
+            for (int i = 0; i < v1.getData().length; i++) {
+            	System.out.print(v1.getData()[i] + " ");
+            }
+            System.out.println();
+            for (int i = 0; i < v2.getData().length; i++) {
+            	System.out.print(v2.getData()[i] + " ");
+            }
+            System.out.println();
+            for (int i = 0; i < v3.getData().length; i++) {
+            	System.out.print(v3.getData()[i] + " ");
+            }
+            System.out.println();
+            for (int i = 0; i < v4.getData().length; i++) {
+            	System.out.print(v4.getData()[i] + " ");
+            }
+            System.out.println();
+            
+//TODO: write method to convert to screen coordinates
+//            v1 = MatrixUtils.cameraPointToScreenPoint(v1);
+//            v2 = MatrixUtils.cameraPointToScreenPoint(v2);
+//            v3 = MatrixUtils.cameraPointToScreenPoint(v3);
+//            v4 = MatrixUtils.cameraPointToScreenPoint(v4);
+            
+            
             //NOTE(revan): debug prints
-            Log.d(LOGTAG, "Pose: " + result.getPose());
-            Log.d(LOGTAG, "modelViewMatrix: " + modelViewMatrix);
+            float[] poseMatrix = result.getPose().getData();
+            Log.d(LOGTAG, "Pose:");
+            for (int i = 0; i < poseMatrix.length; i++) {
+            	System.out.print(poseMatrix[i] + " ");
+            }
+            System.out.println();
+            
+            Log.d(LOGTAG, "modelViewMatrix:");
             for (int i = 0; i < modelViewMatrix.length; i++) {
             	System.out.print(modelViewMatrix[i] + " ");
             }
