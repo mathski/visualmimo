@@ -15,6 +15,7 @@ import javax.microedition.khronos.opengles.GL10;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.util.DisplayMetrics;
 import android.util.Log;
 
 import com.qualcomm.QCAR.QCAR;
@@ -160,44 +161,36 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer
             Vec2F v3 = Tool.projectPoint(cameraCalibration, result.getPose(), new Vec3F(halfWidth, -halfHeight, 0));
             Vec2F v4 = Tool.projectPoint(cameraCalibration, result.getPose(), new Vec3F(-halfWidth, -halfHeight, 0));
             
-            Log.d(LOGTAG, "Corners:");
-            for (int i = 0; i < v1.getData().length; i++) {
-            	System.out.print(v1.getData()[i] + " ");
-            }
-            System.out.println();
-            for (int i = 0; i < v2.getData().length; i++) {
-            	System.out.print(v2.getData()[i] + " ");
-            }
-            System.out.println();
-            for (int i = 0; i < v3.getData().length; i++) {
-            	System.out.print(v3.getData()[i] + " ");
-            }
-            System.out.println();
-            for (int i = 0; i < v4.getData().length; i++) {
-            	System.out.print(v4.getData()[i] + " ");
-            }
-            System.out.println();
+            Log.d(LOGTAG, "Corners (camera space):");
+            MatrixUtils.printVector(v1);
+            MatrixUtils.printVector(v2);
+            MatrixUtils.printVector(v3);
+            MatrixUtils.printVector(v4);
             
-//TODO: write method to convert to screen coordinates
-//            v1 = MatrixUtils.cameraPointToScreenPoint(v1);
-//            v2 = MatrixUtils.cameraPointToScreenPoint(v2);
-//            v3 = MatrixUtils.cameraPointToScreenPoint(v3);
-//            v4 = MatrixUtils.cameraPointToScreenPoint(v4);
+            // Query display dimensions:
+            DisplayMetrics metrics = new DisplayMetrics();
+            mActivity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+            int screenWidth = metrics.widthPixels;
+            int screenHeight = metrics.heightPixels;
             
+            v1 = MatrixUtils.cameraPointToScreenPoint(v1, screenWidth, screenHeight);
+            v2 = MatrixUtils.cameraPointToScreenPoint(v2, screenWidth, screenHeight);
+            v3 = MatrixUtils.cameraPointToScreenPoint(v3, screenWidth, screenHeight);
+            v4 = MatrixUtils.cameraPointToScreenPoint(v4, screenWidth, screenHeight);
+            
+            Log.d(LOGTAG, "Corners (screen space):");
+            MatrixUtils.printVector(v1);
+            MatrixUtils.printVector(v2);
+            MatrixUtils.printVector(v3);
+            MatrixUtils.printVector(v4);
             
             //NOTE(revan): debug prints
             float[] poseMatrix = result.getPose().getData();
             Log.d(LOGTAG, "Pose:");
-            for (int i = 0; i < poseMatrix.length; i++) {
-            	System.out.print(poseMatrix[i] + " ");
-            }
-            System.out.println();
+            MatrixUtils.printFloatArray(poseMatrix);
             
             Log.d(LOGTAG, "modelViewMatrix:");
-            for (int i = 0; i < modelViewMatrix.length; i++) {
-            	System.out.print(modelViewMatrix[i] + " ");
-            }
-            System.out.println();
+            MatrixUtils.printFloatArray(modelViewMatrix);
             
             // deal with the modelview and projection matrices
             float[] modelViewProjection = new float[16];
