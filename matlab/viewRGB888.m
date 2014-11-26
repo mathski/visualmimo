@@ -10,7 +10,7 @@ r = reshape(A, 3, width, height);
 r = permute(r, [2,3,1]);
 
 % Need to reduce intensity for some reason.
-r = r .* 0.01;
+r = r ./ 255;
 
 % Flip horizontally
 r = flipdim(r, 2);
