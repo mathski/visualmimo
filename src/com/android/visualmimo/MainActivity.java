@@ -26,6 +26,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.util.Pair;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -62,7 +63,6 @@ import com.qualcomm.vuforia.samples.SampleApplication.SampleApplicationSession;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.LoadingDialogHandler;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.SampleApplicationGLView;
 import com.android.visualmimo.R;
-import com.android.visualmimo.camera.CameraView;
 import com.android.visualmimo.camera.DrawView;
 import com.android.visualmimo.camera.ImageProcessing;
 import com.android.visualmimo.camera.ImageTargetRenderer;
@@ -76,8 +76,11 @@ import com.android.visualmimo.persistence.MIMOFrame;
  */
 public class MainActivity extends Activity
 {
+	/** NDK: subtracts frame1 from frame2, overwriting frame1*/
+	private native void frameSubtraction(byte[] frame1, byte[] frame2);
+	
 	/** The number of images to save when we are recording.*/
-    private static final int NUM_SAVES = 50;
+    private static final int NUM_SAVES = 10;
     private int saveCount = 0;
     private boolean recordingMode = false;
     private static final String savePath = "/sdcard/vmimo/";
@@ -458,7 +461,7 @@ public class MainActivity extends Activity
     	//NOTE(revan): Vuforia is weird and gives back a whole bunch of formats.
     	//Loop to get right one.
     	for (int i = 0; i < frame.getNumImages(); i++) {
-    		System.out.println("Image " + i);
+//    		System.out.println("Image " + i);
     		Image temp = frame.getImage(i);
     		if (temp.getFormat() == MIMOFrame.IMAGE_FORMAT) {
         		image = temp;
@@ -479,10 +482,10 @@ public class MainActivity extends Activity
         final int stride = image.getStride();
         
         //NOTE(revan): debug prints
-        System.out.println("Image width: " + imageWidth);
-        System.out.println("Image height: " + imageHeight);
-        System.out.println("Image stride: " + stride);
-        System.out.println("First pixel byte: " + pixelArray[0]);
+//        System.out.println("Image width: " + imageWidth);
+//        System.out.println("Image height: " + imageHeight);
+//        System.out.println("Image stride: " + stride);
+//        System.out.println("First pixel byte: " + pixelArray[0]);
         
         //Add frame to FrameCache.
         new Thread(new Runnable() {
@@ -493,17 +496,22 @@ public class MainActivity extends Activity
                 
         if(recordingMode) {
         	saveCount++;
-        	if (saveCount < NUM_SAVES) {
+        	if (saveCount <= NUM_SAVES) {
 		        //Queue file write.
         		new Thread(new Runnable() {
         			public void run() {
+        				//perform operations in NDK
+        				Pair<MIMOFrame, MIMOFrame> frames = cache.getLastTwoFrames();
+        				frameSubtraction(frames.first.getRaw(), frames.second.getRaw());
+        				
+        				//delete write array
 						String filePath = savePath + saveDir + "/" + saveCount + ".rgb888";
 						File file = new File(filePath);
 						try {
 							file.delete();
 							file.createNewFile();
 							FileOutputStream stream = new FileOutputStream(file);
-							stream.write(pixelArray);
+							stream.write(frames.first.getRaw());
 						} catch (IOException e) {
 							e.printStackTrace();
 						}

@@ -3,6 +3,8 @@ package com.android.visualmimo.persistence;
 import java.util.LinkedList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import android.util.Pair;
+
 /**
  * Singleton that keeps track of the n most recent MIMOFrames.
  * @author alexio
@@ -47,19 +49,35 @@ public class FrameCache {
      * @return A buffered frame
      */
     public MIMOFrame getRecentFrame(int recentPosition) {
-        if( recentPosition >= buffer.size()) {
+        if (recentPosition >= buffer.size()) {
             //Log.e("*","Return null");
             return null;
         }
 
         mRWLock.readLock().lock();
-        try{
+        try {
             //Log.e("*", "SIZE: " + buffer.size() + " POS: " + recentPosition);
             return buffer.get(recentPosition);
-        }
-        finally {
+        } finally {
             mRWLock.readLock().unlock();
         }
+    }
+    
+    /**
+     * @return the two most recent frames.
+     * Needed because calling getRecentFrame() twice isn't atomic.
+     */
+    public Pair<MIMOFrame, MIMOFrame> getLastTwoFrames() {
+    	if (buffer.size() < 2) {
+    		return null;
+    	}
+    	
+    	mRWLock.readLock().lock();
+    	try {
+    		return new Pair<MIMOFrame, MIMOFrame>(buffer.get(0), buffer.get(1));
+    	} finally {
+    		mRWLock.readLock().unlock();
+    	}
     }
 
     public int size(){
