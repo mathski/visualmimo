@@ -87,7 +87,9 @@ import com.android.visualmimo.persistence.MIMOFrame;
 public class MainActivity extends Activity
 {
 	/** NDK: subtracts frame1 from frame2, overwriting frame1*/
-	private native void frameSubtraction(byte[] frame1, byte[] frame2);
+	private native void frameSubtraction(byte[] frame1, byte[] frame2,
+			int width, int height,
+			float[][] corners1, float[][] corners2);
 	
 	/** The number of images to save when we are recording.*/
     private static final int NUM_SAVES = 10;
@@ -511,9 +513,9 @@ public class MainActivity extends Activity
             // Query display dimensions:
             DisplayMetrics metrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(metrics);
-            int screenWidth = metrics.widthPixels;
-            int screenHeight = metrics.heightPixels;
-            
+//            int screenWidth = metrics.widthPixels;
+//            int screenHeight = metrics.heightPixels;
+//            
 //            v1 = MatrixUtils.cameraPointToScreenPoint(v1, screenWidth, screenHeight);
 //            v2 = MatrixUtils.cameraPointToScreenPoint(v2, screenWidth, screenHeight);
 //            v3 = MatrixUtils.cameraPointToScreenPoint(v3, screenWidth, screenHeight);
@@ -577,7 +579,9 @@ public class MainActivity extends Activity
 	        					System.out.println(corner[0] + " " + corner[1]);
 	        				}
 	        				
-	        				frameSubtraction(frames.first.getRaw(), frames.second.getRaw());
+	        				frameSubtraction(frames.first.getRaw(), frames.second.getRaw(),
+	        						imageWidth, imageHeight,
+	        						frames.first.getCorners(), frames.second.getCorners());
 	        				
 	        				//delete write array
 							String filePath = savePath + saveDir + "/" + saveCount + ".rgb888";
