@@ -19,11 +19,21 @@ public class MIMOFrame {
     private int height;
     private int width;
     //TODO(revan): add stride?
+    
+    private float[][] corners;
 
-    public MIMOFrame(byte[] raw, int width, int height) {
+    /**
+     * @param raw the RGB888 encoded byte array
+     * @param width
+     * @param height
+     * @param corners a 4 x 2 array of floats representing camera-space corners
+     */
+    public MIMOFrame(byte[] raw, int width, int height, float[][] corners) {
         this.raw = raw;
         this.height = height;
         this.width = width;
+        
+        this.corners = corners;
     }
 
     public byte[] getRaw() {
@@ -33,5 +43,7 @@ public class MIMOFrame {
     public int getHeight() { return height; }
 
     public int getWidth() { return width; }
+    
+    public float[][] getCorners() { return corners; }
 }
 

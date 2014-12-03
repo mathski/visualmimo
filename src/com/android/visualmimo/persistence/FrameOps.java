@@ -24,7 +24,7 @@ public class FrameOps {
             }
         }
 
-        return new MIMOFrame(raw, frame.getWidth(), frame.getHeight());
+        return new MIMOFrame(raw, frame.getWidth(), frame.getHeight(), frame.getCorners());
     }
 
     //For division
@@ -43,7 +43,7 @@ public class FrameOps {
             }
         }
 
-        return new MIMOFrame(raw, frame.getWidth(), frame.getHeight());
+        return new MIMOFrame(raw, frame.getWidth(), frame.getHeight(), frame.getCorners());
     }
 
     public static MIMOFrame frameSubtraction(MIMOFrame x, MIMOFrame y) {
@@ -81,7 +81,7 @@ public class FrameOps {
         }
         
   		 
-        return new MIMOFrame(sub, x.getWidth(), x.getHeight());
+        return new MIMOFrame(sub, x.getWidth(), x.getHeight(), x.getCorners());
     }
     
     
@@ -148,7 +148,7 @@ public class FrameOps {
             
         }
 
-        return new MIMOFrame(div, x.getWidth(), x.getHeight());
+        return new MIMOFrame(div, x.getWidth(), x.getHeight(), x.getCorners());
     }
 }
 

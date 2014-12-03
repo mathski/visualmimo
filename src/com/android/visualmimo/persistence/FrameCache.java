@@ -29,13 +29,13 @@ public class FrameCache {
         return singleton;
     }
 
-    public void addFrame(byte[] frameData, int width,  int height) {
+    public void addFrame(byte[] frameData, int width,  int height, float[][] corners) {
         mRWLock.writeLock().lock();
         try{
             if(buffer.size() == 2)
                 buffer.remove(0);
 
-            buffer.add(new MIMOFrame(frameData, width, height));
+            buffer.add(new MIMOFrame(frameData, width, height, corners));
             changed = true;
         }
         finally{

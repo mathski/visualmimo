@@ -111,7 +111,10 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer
     }
     
     
-    // The render function.
+    /**
+     * Handles rendering a frame to the screen.
+     * TODO: draw corners on screen, maybe framerate etc. too?
+     */
     private void renderFrame()
     {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
@@ -131,84 +134,26 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer
             GLES20.glFrontFace(GLES20.GL_CCW); // Back camera
             
         // did we find any trackables this frame?
-        for (int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx++)
-        {
-            TrackableResult result = state.getTrackableResult(tIdx);
-            Trackable trackable = result.getTrackable();
-            printUserData(trackable);
-            Matrix44F modelViewMatrix_Vuforia = Tool
-                .convertPose2GLMatrix(result.getPose());
-            float[] modelViewMatrix = modelViewMatrix_Vuforia.getData();
-            
-            int textureIndex = trackable.getName().equalsIgnoreCase("stones") ? 0
-                : 1;
-            textureIndex = trackable.getName().equalsIgnoreCase("tarmac") ? 2
-                : textureIndex;
-            
-            
-            //extract corners of trackable
-            //adapted from https://developer.vuforia.com/forum/android/get-trackable-angle
-            ImageTarget imageTarget = (ImageTarget) trackable;
-            Vec2F targetSize = imageTarget.getSize();
-            
-            float halfWidth = targetSize.getData()[0] / 2.0f;
-            float halfHeight = targetSize.getData()[1] / 2.0f;
-            
-            CameraCalibration cameraCalibration = CameraDevice.getInstance().getCameraCalibration();
-
-            Vec2F v1 = Tool.projectPoint(cameraCalibration, result.getPose(), new Vec3F(-halfWidth, halfHeight, 0));
-            Vec2F v2 = Tool.projectPoint(cameraCalibration, result.getPose(), new Vec3F(halfWidth, halfHeight, 0));
-            Vec2F v3 = Tool.projectPoint(cameraCalibration, result.getPose(), new Vec3F(halfWidth, -halfHeight, 0));
-            Vec2F v4 = Tool.projectPoint(cameraCalibration, result.getPose(), new Vec3F(-halfWidth, -halfHeight, 0));
-            
-            Log.d(LOGTAG, "Corners (camera space):");
-            MatrixUtils.printVector(v1);
-            MatrixUtils.printVector(v2);
-            MatrixUtils.printVector(v3);
-            MatrixUtils.printVector(v4);
-            
-            // Query display dimensions:
-            DisplayMetrics metrics = new DisplayMetrics();
-            mActivity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
-            int screenWidth = metrics.widthPixels;
-            int screenHeight = metrics.heightPixels;
-            
-            v1 = MatrixUtils.cameraPointToScreenPoint(v1, screenWidth, screenHeight);
-            v2 = MatrixUtils.cameraPointToScreenPoint(v2, screenWidth, screenHeight);
-            v3 = MatrixUtils.cameraPointToScreenPoint(v3, screenWidth, screenHeight);
-            v4 = MatrixUtils.cameraPointToScreenPoint(v4, screenWidth, screenHeight);
-            
-            Log.d(LOGTAG, "Corners (screen space):");
-            MatrixUtils.printVector(v1);
-            MatrixUtils.printVector(v2);
-            MatrixUtils.printVector(v3);
-            MatrixUtils.printVector(v4);
-            
-            //NOTE(revan): debug prints
-            float[] poseMatrix = result.getPose().getData();
-            Log.d(LOGTAG, "Pose:");
-            MatrixUtils.printFloatArray(poseMatrix);
-            
-            Log.d(LOGTAG, "modelViewMatrix:");
-            MatrixUtils.printFloatArray(modelViewMatrix);
-            
-            // deal with the modelview and projection matrices
-            float[] modelViewProjection = new float[16];
-            
-            Matrix.translateM(modelViewMatrix, 0, 0.0f, 0.0f,
-                OBJECT_SCALE_FLOAT);
-            Matrix.scaleM(modelViewMatrix, 0, OBJECT_SCALE_FLOAT,
-                OBJECT_SCALE_FLOAT, OBJECT_SCALE_FLOAT);
-            
-            Matrix.multiplyMM(modelViewProjection, 0, vuforiaAppSession
-                .getProjectionMatrix().getData(), 0, modelViewMatrix, 0);
-            
-            // activate the shader program and bind the vertex/normal/tex coords
-            GLES20.glUseProgram(shaderProgramID);
-            
-            SampleUtils.checkGLError("Render Frame");
-            
-        }
+//        for (int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx++)
+//        {
+//            TrackableResult result = state.getTrackableResult(tIdx);
+//            Trackable trackable = result.getTrackable();
+//            printUserData(trackable);
+//            Matrix44F modelViewMatrix_Vuforia = Tool
+//                .convertPose2GLMatrix(result.getPose());
+//            float[] modelViewMatrix = modelViewMatrix_Vuforia.getData();
+//            
+//            int textureIndex = trackable.getName().equalsIgnoreCase("stones") ? 0
+//                : 1;
+//            textureIndex = trackable.getName().equalsIgnoreCase("tarmac") ? 2
+//                : textureIndex;
+//            
+//            // activate the shader program and bind the vertex/normal/tex coords
+//            GLES20.glUseProgram(shaderProgramID);
+//            
+//            SampleUtils.checkGLError("Render Frame");
+//            
+//        }
         
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);
         
