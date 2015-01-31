@@ -1,6 +1,7 @@
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
+include $(OPENCV_PACKAGE_DIR)/sdk/native/jni/OpenCV.mk
 
 LOCAL_LDLIBS := -llog
 
