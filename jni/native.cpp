@@ -3,12 +3,15 @@
 #include <android/log.h>
 
 #include <cv.h>
+#include <highgui.h>
 
 #define DEBUG_TAG "NDK_AndroidNDK1SampleActivity"
 
+using namespace cv;
+
 extern "C" {
 
-void Java_com_android_visualmimo_MainActivity_helloLog(JNIEnv * env, jobject thisObj, jstring logThis)
+JNIEXPORT void Java_com_android_visualmimo_MainActivity_helloLog(JNIEnv * env, jobject thisObj, jstring logThis)
 {
     jboolean isCopy;
     const char * szLogThis = env->GetStringUTFChars(logThis, &isCopy);
@@ -21,7 +24,7 @@ void Java_com_android_visualmimo_MainActivity_helloLog(JNIEnv * env, jobject thi
 /**
  * Subtracts frame2 from frame1, overwriting frame1
  */
-void Java_com_android_visualmimo_MainActivity_frameSubtraction(JNIEnv *env, jobject obj,
+JNIEXPORT void Java_com_android_visualmimo_MainActivity_frameSubtraction(JNIEnv *env, jobject obj,
 		jbyteArray frame1, jbyteArray frame2,
 		jint width, jint height,
 		jfloatArray corners1, jfloatArray corners2)
@@ -37,6 +40,9 @@ void Java_com_android_visualmimo_MainActivity_frameSubtraction(JNIEnv *env, jobj
 //	jfloat* corners2Temp =  env->GetFloatArrayElements(corners2, NULL);
 //	float* c1 = corners1Temp;
 //	float* c2 = corners2Temp;
+
+
+	Mat matImage(l1, 1, CV_8UC1, (unsigned char *)f1);
 
 	//TODO: use OpenCV magic here
 
