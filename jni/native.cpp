@@ -42,17 +42,31 @@ JNIEXPORT void Java_com_android_visualmimo_MainActivity_frameSubtraction(JNIEnv 
 //	float* c2 = corners2Temp;
 
 
-	Mat matImage(l1, 1, CV_8UC1, (unsigned char *)f1);
+	// Create OpenCV matrix from 1D array.
+	Mat matImage1(l1, 1, CV_8UC1, (unsigned char *)f1);
+	Mat matImage2(l1, 1, CV_8UC1, (unsigned char *)f2);
+
+	// Reshape matrix. 3 layers, correct height.
+	// NOTE(revan): still needs to be flipped and have colors reordered (see MATLAB script).
+	Mat reshapedImage1 = matImage1.reshape(3, height);
+	Mat reshapedImage2 = matImage2.reshape(3, height);
+
+	// Subtract, overwrite first.
+	subtract(reshapedImage1, reshapedImage2, reshapedImage1);
+
+	imwrite("/sdcard/opencv.bmp", reshapedImage1);
 
 	//TODO: use OpenCV magic here
 
+	/*
 	//subtraction demo
 	int i;
 	for (i = 0; i < l1; i++) {
 		f1[i] = f1[i] - f2[i];
 	}
+	*/
 
-	//last arg: 0 -> copy array back, JNI_ABBORT -> don't copy
+	// last arg: 0 -> copy array back, JNI_ABBORT -> don't copy
 	env->ReleaseByteArrayElements(frame1, f1, 0);
 	env->ReleaseByteArrayElements(frame2, f2, JNI_ABORT);
 //	env->ReleaseFloatArrayElements(corners1, corners1Temp, JNI_ABORT);
