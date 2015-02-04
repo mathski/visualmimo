@@ -101,7 +101,7 @@ JNIEXPORT void Java_com_android_visualmimo_MainActivity_frameSubtraction(JNIEnv 
 	sortCorners(corners, center);
 	
 	// Define the destination image
-	cv::Mat quad = cv::Mat::zeros(height, width, CV_8UC3);
+	cv::Mat quad = cv::Mat::zeros(560, 420, CV_8UC3);
 
 	// Corners of the destination image
 	std::vector<cv::Point2f> quad_pts;
@@ -118,6 +118,8 @@ JNIEXPORT void Java_com_android_visualmimo_MainActivity_frameSubtraction(JNIEnv 
 
 
 	// Save to file
+	flip(reshapedImage1.t(), reshapedImage1, 1);
+	flip(quad.t(), quad, 1);
 	imwrite("/sdcard/opencv.bmp", reshapedImage1);
 	imwrite("/sdcard/opencv2.bmp", quad);
 
