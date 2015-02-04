@@ -89,7 +89,10 @@ public class MainActivity extends Activity
 	/** NDK: subtracts frame1 from frame2, overwriting frame1*/
 	private native void frameSubtraction(byte[] frame1, byte[] frame2,
 			int width, int height,
-			float[][] corners1, float[][] corners2);
+			float c0x, float c0y,
+			float c1x, float c1y,
+			float c2x, float c2y,
+			float c3x, float c3y);
 	
 	/** The number of images to save when we are recording.*/
     private static final int NUM_SAVES = 10;
@@ -579,9 +582,15 @@ public class MainActivity extends Activity
 	        					System.out.println(corner[0] + " " + corner[1]);
 	        				}
 	        				
+	        				// NDK call
+	        				
 	        				frameSubtraction(frames.first.getRaw(), frames.second.getRaw(),
 	        						imageWidth, imageHeight,
-	        						frames.first.getCorners(), frames.second.getCorners());
+	        						frames.first.getCorners()[0][0], frames.first.getCorners()[0][1],
+	        						frames.first.getCorners()[1][0], frames.first.getCorners()[1][1],
+	        						frames.first.getCorners()[2][0], frames.first.getCorners()[2][1],
+	        						frames.first.getCorners()[3][0], frames.first.getCorners()[3][1]
+	        						);
 	        				
 	        				//delete write array
 							String filePath = savePath + saveDir + "/" + saveCount + ".rgb888";
@@ -715,7 +724,7 @@ public class MainActivity extends Activity
     public void displayCamera() {
 //    	cameraViewSize(originalWidth, originalHeight);
     	//NOTE(revan): I think we can set visibility instead of resizing, right?
-    	mGlView.setVisibility(View.VISIBLE);
+//    	mGlView.setVisibility(View.VISIBLE);
         drawViewSize(0,0);
         switchButton.setText("Camera");
     }

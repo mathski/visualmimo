@@ -110,41 +110,39 @@ public class ImageProcessing extends Thread {
 	// storage used during image convert
 	private byte[] storage;
 	
-	String currentType;
-	
 	public void setProcessingType(String type) {
-		this.currentType = type;
+//		this.currentType = type;
 	}
 	
 	public void process(MIMOFrame first_frame, MIMOFrame second) {
-		MIMOFrame result_frame;
-		if( currentType == "Subtraction") {
-			Log.e("??", "& Processing is subtracting!!");
-		//second = FrameOps.intensify(second);
-			result_frame = FrameOps.frameSubtraction(first_frame, second);
-		} else {
-		//second = FrameOps.scale(second);
-			Log.e("??", "& Processing is dividing!!");
-			result_frame = FrameOps.frameDivision(first_frame, second);
-		}
-		
-		//TODO(revan): pretty sure I broke this by changing the the image format to RGB888.
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		YuvImage yuvImage = new YuvImage(result_frame.getRaw(), ImageFormat.NV21, result_frame.getWidth(), result_frame.getHeight(), null);
-		yuvImage.compressToJpeg(new Rect(0, 0, result_frame.getWidth(), result_frame.getHeight()), 50, out);
-		byte[] imageBytes = out.toByteArray();
-		
-		// recycle old bitmaps for performance
-		if (output != null) {
-			output.recycle();
-		}
-		
-		output = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-		synchronized ( lockGui ) {
-			Bitmap tmp = output;
-			output = outputMap;
-			outputMap = tmp;
-		}
+//		MIMOFrame result_frame;
+//		if( currentType == "Subtraction") {
+//			Log.e("??", "& Processing is subtracting!!");
+//		//second = FrameOps.intensify(second);
+//			result_frame = FrameOps.frameSubtraction(first_frame, second);
+//		} else {
+//		//second = FrameOps.scale(second);
+//			Log.e("??", "& Processing is dividing!!");
+//			result_frame = FrameOps.frameDivision(first_frame, second);
+//		}
+//		
+//		//TODO(revan): pretty sure I broke this by changing the the image format to RGB888.
+//		ByteArrayOutputStream out = new ByteArrayOutputStream();
+//		YuvImage yuvImage = new YuvImage(result_frame.getRaw(), ImageFormat.NV21, result_frame.getWidth(), result_frame.getHeight(), null);
+//		yuvImage.compressToJpeg(new Rect(0, 0, result_frame.getWidth(), result_frame.getHeight()), 50, out);
+//		byte[] imageBytes = out.toByteArray();
+//		
+//		// recycle old bitmaps for performance
+//		if (output != null) {
+//			output.recycle();
+//		}
+//		
+//		output = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+//		synchronized ( lockGui ) {
+//			Bitmap tmp = output;
+//			output = outputMap;
+//			outputMap = tmp;
+//		}
 	}
 	
 	public void render(Canvas canvas, double scale) {
