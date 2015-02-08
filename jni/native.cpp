@@ -45,6 +45,42 @@ void sortCorners(std::vector<cv::Point2f>& corners, cv::Point2f center)
     corners.push_back(bl);
 }
 
+void projectiveTransform(Mat &image, Mat &dest,
+		jfloat c0x, jfloat c0y,
+		jfloat c1x, jfloat c1y,
+		jfloat c2x, jfloat c2y,
+		jfloat c3x, jfloat c3y) {
+  
+	//perspective transform
+	std::vector<Point2f> corners;
+	corners.push_back(cv::Point2f(c0x, c0y));
+	corners.push_back(cv::Point2f(c1x, c1y));
+	corners.push_back(cv::Point2f(c2x, c2y));
+	corners.push_back(cv::Point2f(c3x, c3y));
+
+	// Get mass center
+	cv::Point2f center(0,0);
+	for (int i = 0; i < corners.size(); i++)
+		center += corners[i];
+	
+	center *= (1. / corners.size());
+	sortCorners(corners, center);
+	
+
+	// Corners of the destination image
+	std::vector<cv::Point2f> dest_pts;
+	dest_pts.push_back(cv::Point2f(0, 0));
+	dest_pts.push_back(cv::Point2f(dest.cols, 0));
+	dest_pts.push_back(cv::Point2f(dest.cols, dest.rows));
+	dest_pts.push_back(cv::Point2f(0, dest.rows));
+
+	// Get transformation matrix
+	cv::Mat transmtx = cv::getPerspectiveTransform(corners, dest_pts);
+
+	// Apply perspective transformation
+	cv::warpPerspective(image, dest, transmtx, dest.size());
+}
+
 /**
  * Subtracts frame2 from frame1, overwriting frame1
  */
@@ -71,57 +107,42 @@ JNIEXPORT void Java_com_android_visualmimo_MainActivity_frameSubtraction(JNIEnv 
 	Mat reshapedImage1 = matImage1.reshape(3, height);
 	Mat reshapedImage2 = matImage2.reshape(3, height);
 
-	// Subtract, overwrite first.
-	//subtract(reshapedImage1, reshapedImage2, reshapedImage1);
-
-	//TODO: use OpenCV magic here
-
-	/*
-	//subtraction demo
-	int i;
-	for (i = 0; i < l1; i++) {
-		f1[i] = f1[i] - f2[i];
-	}
-	*/
-
-
-	//TODO: perspective transform
-	std::vector<Point2f> corners;
-	corners.push_back(cv::Point2f(c0x, c0y));
-	corners.push_back(cv::Point2f(c1x, c1y));
-	corners.push_back(cv::Point2f(c2x, c2y));
-	corners.push_back(cv::Point2f(c3x, c3y));
-
-	// Get mass center
-	cv::Point2f center(0,0);
-	for (int i = 0; i < corners.size(); i++)
-		center += corners[i];
-	
-	center *= (1. / corners.size());
-	sortCorners(corners, center);
-	
 	// Define the destination image
-	cv::Mat quad = cv::Mat::zeros(560, 420, CV_8UC3);
+	cv::Mat target1 = cv::Mat::zeros(560, 420, CV_8UC1);
+	cv::Mat target2 = cv::Mat::zeros(560, 420, CV_8UC1);
+	projectiveTransform(reshapedImage1, target1, c0x, c0y, c1x, c1y, c2x, c2y, c3x, c3y);
+	projectiveTransform(reshapedImage2, target2, c0x, c0y, c1x, c1y, c2x, c2y, c3x, c3y);
 
-	// Corners of the destination image
-	std::vector<cv::Point2f> quad_pts;
-	quad_pts.push_back(cv::Point2f(0, 0));
-	quad_pts.push_back(cv::Point2f(quad.cols, 0));
-	quad_pts.push_back(cv::Point2f(quad.cols, quad.rows));
-	quad_pts.push_back(cv::Point2f(0, quad.rows));
+	// Convert from BGR to YCbCr, because we need intensity as its own channel
+	cv::cvtColor(target1, target1, CV_BGR2YCrCb);
+	cv::cvtColor(target2, target2, CV_BGR2YCrCb);
+	
+	vector<Mat> channels1;
+	split(target1, channels1);
+	vector<Mat> channels2;
+	split(target2, channels2);
 
-	// Get transformation matrix
-	cv::Mat transmtx = cv::getPerspectiveTransform(corners, quad_pts);
+	// histogram equalization
+	cv::equalizeHist(channels1[0], channels1[0]);
+	cv::equalizeHist(channels2[0], channels2[0]);
 
-	// Apply perspective transformation
-	cv::warpPerspective(reshapedImage1, quad, transmtx, quad.size());
+	merge(channels1, target1);
+	merge(channels2, target2);
 
+	cv::cvtColor(target1, target1, CV_YCrCb2BGR);
+	cv::cvtColor(target2, target2, CV_YCrCb2BGR);
+
+	imwrite("/sdcard/opencv2.bmp", target1);
+	imwrite("/sdcard/opencv3.bmp", target2);
+
+	// Subtract, overwrite first.
+	subtract(target1, target2, target1);
 
 	// Save to file
 	flip(reshapedImage1.t(), reshapedImage1, 1);
-	flip(quad.t(), quad, 1);
+	flip(target1.t(), target1, 1);
 	imwrite("/sdcard/opencv.bmp", reshapedImage1);
-	imwrite("/sdcard/opencv2.bmp", quad);
+	imwrite("/sdcard/opencv4.bmp", target1);
 
 
 	// last arg: 0 -> copy array back, JNI_ABBORT -> don't copy
