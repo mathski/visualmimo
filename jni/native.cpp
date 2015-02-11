@@ -100,10 +100,14 @@ extern "C" {
     JNIEXPORT void Java_com_android_visualmimo_MainActivity_frameSubtraction(JNIEnv *env, jobject obj,
         jbyteArray frame1, jbyteArray frame2,
         jint width, jint height,
-        jfloat c0x, jfloat c0y,
-        jfloat c1x, jfloat c1y,
-        jfloat c2x, jfloat c2y,
-        jfloat c3x, jfloat c3y
+        jfloat c0x1, jfloat c0y1,
+        jfloat c1x1, jfloat c1y1,
+        jfloat c2x1, jfloat c2y1,
+        jfloat c3x1, jfloat c3y1,
+        jfloat c0x2, jfloat c0y2,
+        jfloat c1x2, jfloat c1y2,
+        jfloat c2x2, jfloat c2y2,
+        jfloat c3x2, jfloat c3y2
         )
     {
       //f1 and f2 are the byte data of the two frames, l1 and l2 are the array lengths
@@ -123,14 +127,16 @@ extern "C" {
       // Define the destination image
       cv::Mat target1 = cv::Mat::zeros(560, 420, CV_8UC1);
       cv::Mat target2 = cv::Mat::zeros(560, 420, CV_8UC1);
-      projectiveTransform(reshapedImage1, target1, c0x, c0y, c1x, c1y, c2x, c2y, c3x, c3y);
-      projectiveTransform(reshapedImage2, target2, c0x, c0y, c1x, c1y, c2x, c2y, c3x, c3y);
+      projectiveTransform(reshapedImage1, target1, c0x1, c0y1, c1x1, c1y1, c2x1, c2y1, c3x1, c3y1);
+      projectiveTransform(reshapedImage2, target2, c0x2, c0y2, c1x2, c1y2, c2x2, c2y2, c3x2, c3y2);
+
+      imwrite("/sdcard/vmimo-frame1-noeq.bmp", target1);
 
       histogramEqualization(target1);
       histogramEqualization(target2);
 
-      imwrite("/sdcard/opencv2.bmp", target1);
-      imwrite("/sdcard/opencv3.bmp", target2);
+      imwrite("/sdcard/vmimo-frame1.bmp", target1);
+      imwrite("/sdcard/vmimo-frame2.bmp", target2);
 
       // Subtract, overwrite first.
       subtract(target1, target2, target1);
@@ -138,8 +144,8 @@ extern "C" {
       // Save to file
       flip(reshapedImage1.t(), reshapedImage1, 1);
       flip(target1.t(), target1, 1);
-      imwrite("/sdcard/opencv.bmp", reshapedImage1);
-      imwrite("/sdcard/opencv4.bmp", target1);
+      imwrite("/sdcard/vmimo-orig.bmp", reshapedImage1);
+      imwrite("/sdcard/vmimo-subtract.bmp", target1);
 
 
       // last arg: 0 -> copy array back, JNI_ABBORT -> don't copy
