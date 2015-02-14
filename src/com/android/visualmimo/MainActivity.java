@@ -99,7 +99,7 @@ public class MainActivity extends Activity
 			float c3x2, float c3y2);
 	
 	/** The number of images to save when we are recording.*/
-    private static final int NUM_SAVES = 10;
+    private static final int NUM_SAVES = 1;
     private int saveCount = 0;
     private boolean recordingMode = false;
     private static final String savePath = "/sdcard/vmimo/";
@@ -504,12 +504,6 @@ public class MainActivity extends Activity
             Vec2F v3 = Tool.projectPoint(cameraCalibration, result.getPose(), new Vec3F(halfWidth, -halfHeight, 0));
             Vec2F v4 = Tool.projectPoint(cameraCalibration, result.getPose(), new Vec3F(-halfWidth, -halfHeight, 0));
             
-//            Log.d(LOGTAG, "Corners (camera space):");
-//            MatrixUtils.printVector(v1);
-//            MatrixUtils.printVector(v2);
-//            MatrixUtils.printVector(v3);
-//            MatrixUtils.printVector(v4);
-            
             final float[][] corners = new float[4][];
             corners[0] = v1.getData();
             corners[1] = v2.getData();
@@ -527,12 +521,6 @@ public class MainActivity extends Activity
 //            v2 = MatrixUtils.cameraPointToScreenPoint(v2, screenWidth, screenHeight);
 //            v3 = MatrixUtils.cameraPointToScreenPoint(v3, screenWidth, screenHeight);
 //            v4 = MatrixUtils.cameraPointToScreenPoint(v4, screenWidth, screenHeight);
-//            
-//            Log.d(LOGTAG, "Corners (screen space):");
-//            MatrixUtils.printVector(v1);
-//            MatrixUtils.printVector(v2);
-//            MatrixUtils.printVector(v3);
-//            MatrixUtils.printVector(v4);
             
             float[] poseMatrix = result.getPose().getData();
             Log.d(LOGTAG, "Pose:");
@@ -581,12 +569,8 @@ public class MainActivity extends Activity
 	        			public void run() {
 	        				//perform operations in NDK
 	        				Pair<MIMOFrame, MIMOFrame> frames = cache.getLastTwoFrames();
-	        				System.out.println("Printing corners:");
-	        				for (float[] corner : frames.first.getCorners()) {
-	        					System.out.println(corner[0] + " " + corner[1]);
-	        				}
 	        				
-	        				// NDK call
+	        				// NDK call: handles subtraction and saving
 	        				
 	        				frameSubtraction(frames.first.getRaw(), frames.second.getRaw(),
 	        						imageWidth, imageHeight,
@@ -599,18 +583,6 @@ public class MainActivity extends Activity
 	        						frames.second.getCorners()[2][0], frames.second.getCorners()[2][1],
 	        						frames.second.getCorners()[3][0], frames.second.getCorners()[3][1]
 	        						);
-	        				
-	        				//delete write array
-							String filePath = savePath + saveDir + "/" + saveCount + ".rgb888";
-							File file = new File(filePath);
-							try {
-								file.delete();
-								file.createNewFile();
-								FileOutputStream stream = new FileOutputStream(file);
-								stream.write(frames.first.getRaw());
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
 	        			}
 	        		}).start();
 	        	} else {
@@ -784,8 +756,8 @@ public class MainActivity extends Activity
                 recordingMode = true;
                 
                 //save to folder of current system time
-                saveDir = "" + System.currentTimeMillis();
-                new File(savePath + saveDir).mkdirs();
+//                saveDir = "" + System.currentTimeMillis();
+//                new File(savePath + saveDir).mkdirs();
                 
                 saveCount = 0;
                 
