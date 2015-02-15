@@ -20,6 +20,10 @@ extern "C" {
         env->ReleaseStringUTFChars(logThis, szLogThis);
     }
 
+	/**
+	 * Utility function for projectiveTransform().
+	 * Sorts corners as: top left, top right, back right, back left.
+	 */
     void sortCorners(std::vector<cv::Point2f>& corners, cv::Point2f center)
     {
         std::vector<cv::Point2f> top, bot;
@@ -44,6 +48,10 @@ extern "C" {
         corners.push_back(bl);
     }
 
+	/**
+	 * Performs projective transform on image. For given set of corners, skews
+	 * image to known ratio.
+	 */
     void projectiveTransform(Mat &image, Mat &dest,
         jfloat c0x, jfloat c0y,
         jfloat c1x, jfloat c1y,
@@ -80,6 +88,10 @@ extern "C" {
       cv::warpPerspective(image, dest, transmtx, dest.size());
     }
 
+	/**
+	 * Performs histogram equalization on image. Normalizes image intensity.
+	 * TODO(revan): preserve transform matrix for application to second image.
+	 */
     void histogramEqualization(Mat &image) {
       // Convert from BGR to YCbCr, because we need intensity as its own channel
       cv::cvtColor(image, image, CV_BGR2YCrCb);
@@ -94,10 +106,34 @@ extern "C" {
       cv::cvtColor(image, image, CV_YCrCb2BGR);
     }
 
+	/**
+	 * Extracts a message from image. Iterates through ROI grid, using average to
+	 * determine on/off state.
+	 */
+	void extractMessage(Mat &image, jboolean *message,
+			int width, int height,
+			int width_blocks, int height_blocks) {
+		int block_width = width / width_blocks;
+		int block_height = height / height_blocks;
+		
+		Scalar m = mean(image);
+		int cutoff = m[0] + m[1] + m[2];
+
+		int k = 0;
+		for (int i = 0; i < height; i += block_height) {
+			for (int j = 0; j < width; j += block_width) {
+				// Get region of interest
+				Mat block = image(Rect(i, j, block_height, block_width));
+				m = mean(block);
+				message[k++] = (m[0] + m[1] + m[2] > cutoff) ? true : false;
+			}
+		}
+	}
+
     /**
      * Subtracts frame2 from frame1, overwriting frame1
      */
-    JNIEXPORT void Java_com_android_visualmimo_MainActivity_frameSubtraction(JNIEnv *env, jobject obj,
+    JNIEXPORT jbooleanArray Java_com_android_visualmimo_MainActivity_frameSubtraction(JNIEnv *env, jobject obj,
         jbyteArray frame1, jbyteArray frame2,
         jint width, jint height,
         jfloat c0x1, jfloat c0y1,
@@ -125,8 +161,8 @@ extern "C" {
       Mat reshapedImage2 = matImage2.reshape(3, height);
 
       // Define the destination image
-      cv::Mat target1 = cv::Mat::zeros(560, 420, CV_8UC1);
-      cv::Mat target2 = cv::Mat::zeros(560, 420, CV_8UC1);
+      cv::Mat target1 = cv::Mat::zeros(width, height, CV_8UC1);
+      cv::Mat target2 = cv::Mat::zeros(width, height, CV_8UC1);
       projectiveTransform(reshapedImage1, target1, c0x1, c0y1, c1x1, c1y1, c2x1, c2y1, c3x1, c3y1);
       projectiveTransform(reshapedImage2, target2, c0x2, c0y2, c1x2, c1y2, c2x2, c2y2, c3x2, c3y2);
 
@@ -141,6 +177,20 @@ extern "C" {
       // Subtract, overwrite first.
       subtract(target1, target2, target1);
 
+	  // Extract message
+	  int width_blocks = 20;
+	  int height_blocks = 20;
+	  int num_blocks = width_blocks * height_blocks;
+	  jboolean message[num_blocks];
+	  extractMessage(target1, message, width, height, width_blocks, height_blocks);
+
+	  // TODO: do something with the message
+	  jbooleanArray message_jboolean = env->NewBooleanArray(num_blocks);
+	  env->SetBooleanArrayRegion(message_jboolean, 0, num_blocks, message);
+	  //for (int i = 0; i < num_blocks; i++) {
+	  //    message_jboolean[i] = message[i];
+	  //}
+
       // Save to file
       flip(reshapedImage1.t(), reshapedImage1, 1);
       flip(target1.t(), target1, 1);
@@ -149,7 +199,9 @@ extern "C" {
 
 
       // last arg: 0 -> copy array back, JNI_ABBORT -> don't copy
-      env->ReleaseByteArrayElements(frame1, f1, 0);
+      env->ReleaseByteArrayElements(frame1, f1, JNI_ABORT);
       env->ReleaseByteArrayElements(frame2, f2, JNI_ABORT);
+
+	  return message_jboolean;
     }
 }

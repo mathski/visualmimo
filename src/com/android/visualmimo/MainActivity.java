@@ -87,7 +87,7 @@ import com.android.visualmimo.persistence.MIMOFrame;
 public class MainActivity extends Activity
 {
 	/** NDK: subtracts frame1 from frame2, overwriting frame1*/
-	private native void frameSubtraction(byte[] frame1, byte[] frame2,
+	private native boolean[] frameSubtraction(byte[] frame1, byte[] frame2,
 			int width, int height,
 			float c0x1, float c0y1,
 			float c1x1, float c1y1,
@@ -523,11 +523,11 @@ public class MainActivity extends Activity
 //            v4 = MatrixUtils.cameraPointToScreenPoint(v4, screenWidth, screenHeight);
             
             float[] poseMatrix = result.getPose().getData();
-            Log.d(LOGTAG, "Pose:");
-            MatrixUtils.printFloatArray(poseMatrix);
+//            Log.d(LOGTAG, "Pose:");
+//            MatrixUtils.printFloatArray(poseMatrix);
             
-            Log.d(LOGTAG, "modelViewMatrix:");
-            MatrixUtils.printFloatArray(modelViewMatrix);
+//            Log.d(LOGTAG, "modelViewMatrix:");
+//            MatrixUtils.printFloatArray(modelViewMatrix);
         
 	    	Frame frame = state.getFrame();
 	    	Image image = null;
@@ -564,7 +564,6 @@ public class MainActivity extends Activity
 	        if(recordingMode) {
 	        	saveCount++;
 	        	if (saveCount <= NUM_SAVES) {
-			        //Queue file write.
 	        		new Thread(new Runnable() {
 	        			public void run() {
 	        				//perform operations in NDK
@@ -572,7 +571,7 @@ public class MainActivity extends Activity
 	        				
 	        				// NDK call: handles subtraction and saving
 	        				
-	        				frameSubtraction(frames.first.getRaw(), frames.second.getRaw(),
+	        				boolean[] message = frameSubtraction(frames.first.getRaw(), frames.second.getRaw(),
 	        						imageWidth, imageHeight,
 	        						frames.first.getCorners()[0][0], frames.first.getCorners()[0][1],
 	        						frames.first.getCorners()[1][0], frames.first.getCorners()[1][1],
@@ -583,6 +582,21 @@ public class MainActivity extends Activity
 	        						frames.second.getCorners()[2][0], frames.second.getCorners()[2][1],
 	        						frames.second.getCorners()[3][0], frames.second.getCorners()[3][1]
 	        						);
+	        				
+	        				String m = "";
+	        				for (boolean b : message) {
+	        					m += b;
+	        				}
+//	        				showToast(m);
+	        				System.out.println("MESSAGE:");
+	        				for (int i = 0; i < 20; i++) {
+	        					for (int j = 0; j < 20; j++) {
+	        						boolean b = message[i*20 + j];
+	        						if (b) System.out.print("X");
+	        						else System.out.print("O");
+	        					}
+	        					System.out.println();
+	        				}
 	        			}
 	        		}).start();
 	        	} else {
