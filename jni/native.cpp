@@ -118,6 +118,7 @@ extern "C" {
 		
 		Scalar m = mean(image);
 		int cutoff = m[0] + m[1] + m[2];
+		//cutoff += 3 * 20;
 
 		int k = 0;
 		for (int i = 0; i < height; i += block_height) {
@@ -178,8 +179,8 @@ extern "C" {
       subtract(target1, target2, target1);
 
 	  // Extract message
-	  int width_blocks = 20;
-	  int height_blocks = 20;
+	  int width_blocks = 10;
+	  int height_blocks = 8;
 	  int num_blocks = width_blocks * height_blocks;
 	  jboolean message[num_blocks];
 	  extractMessage(target1, message, width, height, width_blocks, height_blocks);
@@ -192,8 +193,8 @@ extern "C" {
 	  //}
 
       // Save to file
-      flip(reshapedImage1.t(), reshapedImage1, 1);
-      flip(target1.t(), target1, 1);
+//      flip(reshapedImage1.t(), reshapedImage1, 1);
+      //flip(target1.t(), target1, 1);
       imwrite("/sdcard/vmimo-orig.bmp", reshapedImage1);
       imwrite("/sdcard/vmimo-subtract.bmp", target1);
 
