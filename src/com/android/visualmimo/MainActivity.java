@@ -26,6 +26,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Pair;
@@ -735,8 +736,15 @@ public class MainActivity extends Activity {
 		// Handle presses on the action bar items
 		switch (item.getItemId()) {
 		case R.id.action_save:
-			// enable recording mode
-			recordingMode = true;
+
+			// enable recording mode after delay
+			new Handler().postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					recordingMode = true;
+					
+				}
+			}, 1000);
 
 			// save to folder of current system time
 			// saveDir = "" + System.currentTimeMillis();
