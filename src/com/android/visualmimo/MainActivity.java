@@ -567,15 +567,26 @@ public class MainActivity extends Activity {
 							// showToast(m);
 							System.out.println("MESSAGE:");
 							for (int i = 0; i < 8; i++) {
-								for (int j = 0; j < 10; j++) {
+								for (int j = 9; j >= 0; j--) {
 									boolean b = message[i * 10 + j];
 									if (b)
-										System.out.print("X ");
-									else
 										System.out.print(". ");
+									else
+										System.out.print("X ");
 								}
 								System.out.println();
 							}
+							System.out.print("MESSAGE MATLAB: [");
+							for (int i = 0; i < 8; i++) {
+								for (int j = 9; j >= 0; j--) {
+									boolean b = message[i * 10 + j];
+									if (b)
+										System.out.print("0, ");
+									else
+										System.out.print("1, ");
+								}
+							}
+							System.out.println("];");
 						}
 					}).start();
 				} else {
