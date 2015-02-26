@@ -587,6 +587,25 @@ public class MainActivity extends Activity {
 								}
 							}
 							System.out.println("];");
+							
+							//ascii
+							System.out.println("ASCII CONVERSION:");
+							StringBuffer sb = new StringBuffer();
+							for (int i = 0; i < 8; i++) {
+								for (int j = 9; j >= 0; j--) {
+									boolean b = message[i * 10 + j];
+									if(b)
+										sb.append("0");
+									else
+										sb.append("1");
+									if (sb.length() == 7) {
+										System.out.print((char)Integer.parseInt(sb.toString(), 2));
+//										System.out.println(sb.toString());
+										sb = new StringBuffer();
+									}
+								}
+							}
+							System.out.println();
 						}
 					}).start();
 				} else {
