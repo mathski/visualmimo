@@ -560,52 +560,12 @@ public class MainActivity extends Activity {
 									frames.second.getCorners()[3][0],
 									frames.second.getCorners()[3][1]);
 
-							String m = "";
-							for (boolean b : message) {
-								m += b;
-							}
-							// showToast(m);
-							System.out.println("MESSAGE:");
-							for (int i = 0; i < 8; i++) {
-								for (int j = 9; j >= 0; j--) {
-									boolean b = message[i * 10 + j];
-									if (b)
-										System.out.print(". ");
-									else
-										System.out.print("X ");
-								}
-								System.out.println();
-							}
-							System.out.print("MESSAGE MATLAB: [");
-							for (int i = 0; i < 8; i++) {
-								for (int j = 9; j >= 0; j--) {
-									boolean b = message[i * 10 + j];
-									if (b)
-										System.out.print("0, ");
-									else
-										System.out.print("1, ");
-								}
-							}
-							System.out.println("];");
+							MessageUtils.printGrid(message, System.out);
+							MessageUtils.printArray(message, System.out);
+							String ascii = MessageUtils.parseMessage(message);
+							System.out.println(ascii);
 							
-							//ascii
-							System.out.println("ASCII CONVERSION:");
-							StringBuffer sb = new StringBuffer();
-							for (int i = 0; i < 8; i++) {
-								for (int j = 9; j >= 0; j--) {
-									boolean b = message[i * 10 + j];
-									if(b)
-										sb.append("0");
-									else
-										sb.append("1");
-									if (sb.length() == 7) {
-										System.out.print((char)Integer.parseInt(sb.toString(), 2));
-//										System.out.println(sb.toString());
-										sb = new StringBuffer();
-									}
-								}
-							}
-							System.out.println();
+							//TODO: display to screen
 						}
 					}).start();
 				} else {
