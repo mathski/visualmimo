@@ -19,14 +19,10 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Color;
-import android.hardware.Camera;
-import android.hardware.Camera.CameraInfo;
-import android.opengl.Matrix;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.SystemClock;
+import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Pair;
@@ -43,9 +39,9 @@ import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.qualcomm.QCAR.QCAR;
 import com.qualcomm.vuforia.CameraCalibration;
 import com.qualcomm.vuforia.CameraDevice;
 import com.qualcomm.vuforia.DataSet;
@@ -54,8 +50,6 @@ import com.qualcomm.vuforia.Image;
 import com.qualcomm.vuforia.ImageTarget;
 import com.qualcomm.vuforia.ImageTracker;
 import com.qualcomm.vuforia.Matrix44F;
-import com.qualcomm.vuforia.PIXEL_FORMAT;
-import com.qualcomm.vuforia.Renderer;
 import com.qualcomm.vuforia.State;
 import com.qualcomm.vuforia.STORAGE_TYPE;
 import com.qualcomm.vuforia.Tool;
@@ -63,10 +57,8 @@ import com.qualcomm.vuforia.Trackable;
 import com.qualcomm.vuforia.TrackableResult;
 import com.qualcomm.vuforia.Tracker;
 import com.qualcomm.vuforia.TrackerManager;
-import com.qualcomm.vuforia.VIDEO_BACKGROUND_REFLECTION;
 import com.qualcomm.vuforia.Vec2F;
 import com.qualcomm.vuforia.Vec3F;
-import com.qualcomm.vuforia.VideoBackgroundConfig;
 import com.qualcomm.vuforia.Vuforia;
 import com.qualcomm.vuforia.samples.SampleApplication.SampleApplicationException;
 import com.qualcomm.vuforia.samples.SampleApplication.SampleApplicationSession;
@@ -76,7 +68,6 @@ import com.android.visualmimo.R;
 import com.android.visualmimo.camera.DrawView;
 import com.android.visualmimo.camera.ImageProcessing;
 import com.android.visualmimo.camera.ImageTargetRenderer;
-import com.android.visualmimo.camera.MatrixUtils;
 import com.android.visualmimo.persistence.FrameCache;
 import com.android.visualmimo.persistence.MIMOFrame;
 
@@ -135,13 +126,10 @@ public class MainActivity extends Activity {
 	// private CameraView cameraView;
 	private int originalHeight;
 	private int originalWidth;
-	private Button switchButton;
 	ImageProcessing processor;
 
 	/** FrameCache to which we add Frames as they come. */
 	private FrameCache cache;
-
-	private int viewStatus = 0;
 
 	static {
 		System.loadLibrary("ndk1");
@@ -157,7 +145,6 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 
 		layout = (FrameLayout) findViewById(R.id.cameraView);
-		switchButton = (Button) findViewById(R.id.switch_button);
 
 		// NOTE(revan): Vuforia handles the video output on its own, so I don't
 		// think we need the cameraView any more.
@@ -231,10 +218,6 @@ public class MainActivity extends Activity {
 			mGlView.setVisibility(View.VISIBLE);
 			mGlView.onResume();
 		}
-
-		// getViewSize();
-		viewStatus = 0;
-		switchView(null);
 	}
 
 	/** This helps avoid the app dying when settings change. */
@@ -531,6 +514,19 @@ public class MainActivity extends Activity {
 			if (recordingMode) {
 				saveCount++;
 				if (saveCount <= NUM_SAVES) {
+					// this handler will update the UI with the message below
+					final Handler handler = new Handler(){
+						@Override
+						public void handleMessage(Message msg) {
+							String ascii = (String) msg.obj;
+							showToast(ascii);
+							
+							//TODO: fix
+							((TextView) findViewById(R.id.decoded_data)).setText(ascii);
+						}
+					};
+					
+					// this thread will extract the message
 					new Thread(new Runnable() {
 						public void run() {
 							// perform operations in NDK
@@ -538,7 +534,6 @@ public class MainActivity extends Activity {
 									.getLastTwoFrames();
 
 							// NDK call: handles subtraction and saving
-
 							boolean[] message = frameSubtraction(
 									frames.first.getRaw(),
 									frames.second.getRaw(), imageWidth,
@@ -562,15 +557,29 @@ public class MainActivity extends Activity {
 
 							MessageUtils.printGrid(message, System.out);
 							MessageUtils.printArray(message, System.out);
-							String ascii = MessageUtils.parseMessage(message);
-							System.out.println(ascii);
 							
-							//TODO: display to screen
+							// cheating until we get synchronization: try pattern and inverse, use best
+							String ascii1 = MessageUtils.parseMessage(message);
+							double accuracy1 = MessageUtils.checkAccuracy(message);
+							System.out.println(ascii1);
+							System.out.println(accuracy1);
+							
+							System.out.println("Inverting message...");
+							MessageUtils.invertPattern(message);
+							
+							String ascii2 = MessageUtils.parseMessage(message);
+							double accuracy2 = MessageUtils.checkAccuracy(message);
+							System.out.println(ascii2);
+							System.out.println(accuracy2);
+							
+							// update UI
+							Message msg = new Message();
+							msg.obj = accuracy1 > accuracy2 ? accuracy1 + "% " + ascii1 : accuracy2 + "% " + ascii2;
+							handler.sendMessage(msg);
 						}
 					}).start();
 				} else {
 					recordingMode = false;
-					showToast("Done saving burst.");
 				}
 			}
 
@@ -680,44 +689,12 @@ public class MainActivity extends Activity {
 		// right?
 		// mGlView.setVisibility(View.VISIBLE);
 		drawViewSize(0, 0);
-		switchButton.setText("Camera");
 	}
 
 	public void displayDrawView() {
 		// cameraViewSize(0, 0);
 		mGlView.setVisibility(View.INVISIBLE);
 		drawViewSize(originalWidth, originalHeight);
-		switchButton.setText(drawView.getProcessingType());
-	}
-
-	/**
-	 * Called when button is pressed, cycles between video types. NOTE(revan):
-	 * this may be broken.
-	 */
-	public void switchView(View view) {
-		switch (viewStatus) {
-		case 0: // Camera
-			Log.e("&", "& Camera");
-			displayCamera();
-			viewStatus++;
-			showToast("Camera");
-			break;
-		case 1:
-			drawView.setProcessingType(DrawView.ProcessingType.Subtraction);
-			Log.e("&", "&" + drawView.getProcessingType());
-			displayDrawView();
-			viewStatus++;
-			showToast("Subtraction");
-			break;
-		default:
-
-			drawView.setProcessingType(DrawView.ProcessingType.Division);
-			Log.e("&", "& " + drawView.getProcessingType());
-			displayDrawView();
-			viewStatus = 0;
-			showToast("Division");
-			break;
-		}
 	}
 
 	/** Handles ActionBar presses. */
@@ -732,7 +709,7 @@ public class MainActivity extends Activity {
 				@Override
 				public void run() {
 					recordingMode = true;
-					
+
 				}
 			}, 1000);
 
