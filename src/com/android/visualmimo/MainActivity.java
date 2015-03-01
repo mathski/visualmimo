@@ -65,8 +65,6 @@ import com.qualcomm.vuforia.samples.SampleApplication.SampleApplicationSession;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.LoadingDialogHandler;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.SampleApplicationGLView;
 import com.android.visualmimo.R;
-import com.android.visualmimo.camera.DrawView;
-import com.android.visualmimo.camera.ImageProcessing;
 import com.android.visualmimo.camera.ImageTargetRenderer;
 import com.android.visualmimo.persistence.FrameCache;
 import com.android.visualmimo.persistence.MIMOFrame;
@@ -122,11 +120,8 @@ public class MainActivity extends Activity {
 			this);
 
 	private FrameLayout layout;
-	private DrawView drawView;
-	// private CameraView cameraView;
 	private int originalHeight;
 	private int originalWidth;
-	ImageProcessing processor;
 
 	/** FrameCache to which we add Frames as they come. */
 	private FrameCache cache;
@@ -145,19 +140,6 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 
 		layout = (FrameLayout) findViewById(R.id.cameraView);
-
-		// NOTE(revan): Vuforia handles the video output on its own, so I don't
-		// think we need the cameraView any more.
-		// cameraView = new CameraView(this);
-		drawView = new DrawView(this);
-
-		layout.addView(drawView);
-		// layout.addView(cameraView);
-		layout.bringChildToFront(drawView);
-		processor = new ImageProcessing();
-		processor.setContext(this);
-		drawView.setProcessor(processor);
-		// cameraView.setImageProcessor(processor);
 
 		cache = FrameCache.getInstance();
 
@@ -254,7 +236,7 @@ public class MainActivity extends Activity {
 		} catch (SampleApplicationException e) {
 			Log.e(LOGTAG, e.getString());
 		}
-		processor.stopProcessing();
+//		processor.stopProcessing();
 	}
 
 	@Override
@@ -671,11 +653,6 @@ public class MainActivity extends Activity {
 	// originalWidth = cameraView.getLayoutParams().width;
 	// }
 
-	public void drawViewSize(int width, int height) {
-		drawView.getLayoutParams().height = height;
-		drawView.getLayoutParams().width = width;
-		drawView.requestLayout();
-	}
 
 	// public void cameraViewSize(int width, int height) {
 	// cameraView.getLayoutParams().height = height;
@@ -683,19 +660,6 @@ public class MainActivity extends Activity {
 	// cameraView.requestLayout();
 	// }
 
-	public void displayCamera() {
-		// cameraViewSize(originalWidth, originalHeight);
-		// NOTE(revan): I think we can set visibility instead of resizing,
-		// right?
-		// mGlView.setVisibility(View.VISIBLE);
-		drawViewSize(0, 0);
-	}
-
-	public void displayDrawView() {
-		// cameraViewSize(0, 0);
-		mGlView.setVisibility(View.INVISIBLE);
-		drawViewSize(originalWidth, originalHeight);
-	}
 
 	/** Handles ActionBar presses. */
 	@Override
