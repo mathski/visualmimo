@@ -132,28 +132,6 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer
             GLES20.glFrontFace(GLES20.GL_CW); // Front camera
         else
             GLES20.glFrontFace(GLES20.GL_CCW); // Back camera
-            
-        // did we find any trackables this frame?
-//        for (int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx++)
-//        {
-//            TrackableResult result = state.getTrackableResult(tIdx);
-//            Trackable trackable = result.getTrackable();
-//            printUserData(trackable);
-//            Matrix44F modelViewMatrix_Vuforia = Tool
-//                .convertPose2GLMatrix(result.getPose());
-//            float[] modelViewMatrix = modelViewMatrix_Vuforia.getData();
-//            
-//            int textureIndex = trackable.getName().equalsIgnoreCase("stones") ? 0
-//                : 1;
-//            textureIndex = trackable.getName().equalsIgnoreCase("tarmac") ? 2
-//                : textureIndex;
-//            
-//            // activate the shader program and bind the vertex/normal/tex coords
-//            GLES20.glUseProgram(shaderProgramID);
-//            
-//            SampleUtils.checkGLError("Render Frame");
-//            
-//        }
         
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);
         

@@ -146,8 +146,9 @@ public class MainActivity extends Activity {
 		vuforiaAppSession = new SampleApplicationSession(this);
 
 		startLoadingAnimation();
-		mDatasetStrings.add("StonesAndChips.xml");
-		mDatasetStrings.add("Tarmac.xml");
+		mDatasetStrings.add("VMIMO.xml");
+//		mDatasetStrings.add("StonesAndChips.xml");
+		
 
 		vuforiaAppSession
 				.initAR(this, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -405,11 +406,6 @@ public class MainActivity extends Activity {
 			Matrix44F modelViewMatrix_Vuforia = Tool
 					.convertPose2GLMatrix(result.getPose());
 			float[] modelViewMatrix = modelViewMatrix_Vuforia.getData();
-
-			int textureIndex = trackable.getName().equalsIgnoreCase("stones") ? 0
-					: 1;
-			textureIndex = trackable.getName().equalsIgnoreCase("tarmac") ? 2
-					: textureIndex;
 
 			// extract corners of trackable
 			// adapted from
