@@ -27,6 +27,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Pair;
 import android.view.GestureDetector;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -34,7 +35,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
@@ -655,6 +655,23 @@ public class MainActivity extends Activity {
 	// cameraView.getLayoutParams().width = width;
 	// cameraView.requestLayout();
 	// }
+	
+	private void handleSaveButton() {
+		// enable recording mode after delay
+		new Handler().postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				recordingMode = true;
+
+			}
+		}, 1000);
+
+		// save to folder of current system time
+		// saveDir = "" + System.currentTimeMillis();
+		// new File(savePath + saveDir).mkdirs();
+
+		saveCount = 0;
+	}
 
 
 	/** Handles ActionBar presses. */
@@ -664,20 +681,7 @@ public class MainActivity extends Activity {
 		switch (item.getItemId()) {
 		case R.id.action_save:
 
-			// enable recording mode after delay
-			new Handler().postDelayed(new Runnable() {
-				@Override
-				public void run() {
-					recordingMode = true;
-
-				}
-			}, 1000);
-
-			// save to folder of current system time
-			// saveDir = "" + System.currentTimeMillis();
-			// new File(savePath + saveDir).mkdirs();
-
-			saveCount = 0;
+			handleSaveButton();
 
 			return true;
 		case R.id.action_settings:
@@ -686,6 +690,17 @@ public class MainActivity extends Activity {
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+	
+	/** Handles camera button on Google Glass. */
+	@Override
+	public boolean onKeyDown(int keycode, KeyEvent event) {
+		if (keycode == KeyEvent.KEYCODE_CAMERA) {
+			handleSaveButton();
+			return true;
+		}
+		
+		return super.onKeyDown(keycode, event);
 	}
 
 	private void showToast(String text) {
