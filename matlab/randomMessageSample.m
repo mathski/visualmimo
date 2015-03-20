@@ -1,8 +1,8 @@
 function [ message ] = randomMessageSample()
 % :2:totalFrames
 numFrames=1000;
-fps = 20;
-alpha = 40;
+fps = 29.8/2;
+alpha = 20;
 
 % ensure equal number on and off
 on_left = 10 * 8 / 2;
@@ -11,14 +11,14 @@ off_left = 10 * 8 / 2;
 height = 420;
 width = 560;
 
-[img, cmap] = imread('chips.jpg','jpeg');
+[img, cmap] = imread('5','jpeg');
 %[height,width,~]=size(img);
 img=imresize(img, [height width]);
 
 % HSV conversion
 img = rgb2hsv(img);
 % Histogram Equalize Intensity Channel
-img(:,:,3) = histeq(img(:,:,3), 256);
+%img(:,:,3) = histeq(img(:,:,3), 256);
 % RGB conversion
 img=hsv2rgb(img);
 img=uint8(img*255);
@@ -58,8 +58,9 @@ frames(1)=im2frame(img1,cmap);
 frames(2)=im2frame(img2,cmap);
 h = gcf;
 loc = [0,0,0,0];
-movie(h,frames,numFrames,fps,loc);
 
+%saveAVI(frames);
+movie(h,frames,numFrames,fps,loc);
 
 %movie2avi(frames, 'checkerboardStones.avi', 'FPS', fps, 'compression', 'none', 'KEYFRAME', 1);
 
