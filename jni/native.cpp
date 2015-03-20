@@ -172,8 +172,8 @@ extern "C" {
       histogramEqualization(target1);
       histogramEqualization(target2);
 
-      imwrite("/sdcard/vmimo-frame1.bmp", target1);
-      imwrite("/sdcard/vmimo-frame2.bmp", target2);
+      //imwrite("/sdcard/vmimo-frame1.bmp", target1);
+      //imwrite("/sdcard/vmimo-frame2.bmp", target2);
 
       // Subtract, overwrite first.
       subtract(target1, target2, target1);
@@ -195,8 +195,8 @@ extern "C" {
       // Save to file
 //      flip(reshapedImage1.t(), reshapedImage1, 1);
       //flip(target1.t(), target1, 1);
-      imwrite("/sdcard/vmimo-orig.bmp", reshapedImage1);
-      imwrite("/sdcard/vmimo-subtract.bmp", target1);
+      //imwrite("/sdcard/vmimo-orig.bmp", reshapedImage1);
+//      imwrite("/sdcard/vmimo-subtract.bmp", target1);
 
 
       // last arg: 0 -> copy array back, JNI_ABBORT -> don't copy
