@@ -22,6 +22,8 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Handler.Callback;
+import android.os.Looper;
 import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -72,10 +74,18 @@ import com.android.visualmimo.persistence.MIMOFrame;
 /**
  * Activity that handles everything: Vuforia, UI.
  * 
- * @author alexio, revan
+ * @author revan
  *
  */
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements Callback{
+	/** Set to -1 to enable FPS benchmarking, else 0. */
+	private int frameCount = 0;
+	
+	/** Flag and data for burst collection. */
+	private boolean burstMode = false;
+	private static final int BURST_SAVES = 10;
+	private double[] accuracies;
+	
 	/** NDK: subtracts frame1 from frame2, overwriting frame1 */
 	private native boolean[] frameSubtraction(byte[] frame1, byte[] frame2,
 			int width, int height, float c0x1, float c0y1, float c1x1,
@@ -84,7 +94,7 @@ public class MainActivity extends Activity {
 			float c2y2, float c3x2, float c3y2);
 
 	/** The number of images to save when we are recording. */
-	private static final int NUM_SAVES = 1;
+	private int NUM_SAVES = 1;
 	private int saveCount = 0;
 	private boolean recordingMode = false;
 	private static final String savePath = "/sdcard/vmimo/";
@@ -399,6 +409,8 @@ public class MainActivity extends Activity {
 
 	/** Create new MIMOFrame, add to FrameCache. */
 	public void onQCARUpdate(State state) {
+		benchFPS();
+		
 		// did we find any trackables this frame?
 		for (int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx++) {
 			TrackableResult result = state.getTrackableResult(tIdx);
@@ -435,8 +447,8 @@ public class MainActivity extends Activity {
 			corners[3] = v4.getData();
 
 			// Query display dimensions:
-			DisplayMetrics metrics = new DisplayMetrics();
-			getWindowManager().getDefaultDisplay().getMetrics(metrics);
+//			DisplayMetrics metrics = new DisplayMetrics();
+//			getWindowManager().getDefaultDisplay().getMetrics(metrics);
 			// int screenWidth = metrics.widthPixels;
 			// int screenHeight = metrics.heightPixels;
 			//
@@ -449,7 +461,7 @@ public class MainActivity extends Activity {
 			// v4 = MatrixUtils.cameraPointToScreenPoint(v4, screenWidth,
 			// screenHeight);
 
-			float[] poseMatrix = result.getPose().getData();
+//			float[] poseMatrix = result.getPose().getData();
 			// Log.d(LOGTAG, "Pose:");
 			// MatrixUtils.printFloatArray(poseMatrix);
 
@@ -490,19 +502,15 @@ public class MainActivity extends Activity {
 			}).start();
 
 			if (recordingMode) {
+				if (saveCount == 0) {
+					accuracies = new double[NUM_SAVES];
+				}
 				saveCount++;
 				if (saveCount <= NUM_SAVES) {
 					// this handler will update the UI with the message below
-					final Handler handler = new Handler(){
-						@Override
-						public void handleMessage(Message msg) {
-							String ascii = (String) msg.obj;
-							showToast(ascii);
-							
-							//TODO: fix
-							((TextView) findViewById(R.id.decoded_data)).setText(ascii);
-						}
-					};
+					final Handler handler = new Handler(this);
+					
+					final int index = saveCount;
 					
 					// this thread will extract the message
 					new Thread(new Runnable() {
@@ -551,9 +559,27 @@ public class MainActivity extends Activity {
 							System.out.println(accuracy2);
 							
 							// update UI
-							Message msg = new Message();
-							msg.obj = accuracy1 > accuracy2 ? accuracy1 + "% " + ascii1 : accuracy2 + "% " + ascii2;
-							handler.sendMessage(msg);
+							if (burstMode) {
+								if (index < NUM_SAVES) {
+									accuracies[index - 1] = Math.max(accuracy1, accuracy2);
+								}
+								
+								if (index == NUM_SAVES) {
+									double average = 0;
+									for (double a : accuracies) {
+										average += a;
+									}
+									average /= accuracies.length;
+									
+									Message msg = new Message();
+									msg.obj = "Average accuracy: " + average;
+									handler.sendMessage(msg);
+								}
+							} else {
+								Message msg = new Message();
+								msg.obj = accuracy1 > accuracy2 ? accuracy1 + ": " + ascii1 : accuracy2 + ": " + ascii2;
+								handler.sendMessage(msg);
+							}
 						}
 					}).start();
 				} else {
@@ -684,9 +710,24 @@ public class MainActivity extends Activity {
 			handleSaveButton();
 
 			return true;
-		case R.id.action_settings:
-			// TODO
+			
+		case R.id.action_burst:
+			if (burstMode) {
+				showToast("Disabling Burst Mode");
+				NUM_SAVES = 1;
+				burstMode = false;
+			}
+			else {
+				showToast("Enabling Burst Mode (" + BURST_SAVES + ")");
+				NUM_SAVES = BURST_SAVES;
+				burstMode = true;
+			}
 			return true;
+			
+		case R.id.action_fps:
+			frameCount = -1;
+			return true;
+			
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -702,8 +743,36 @@ public class MainActivity extends Activity {
 		
 		return super.onKeyDown(keycode, event);
 	}
+	
+	private void benchFPS() {
+		if (frameCount++ < 0) {
+			final int seconds = 10;
+			showToast("Benching FPS (" + seconds +"seconds)");
+			new Handler().postDelayed(new Runnable() {
+				
+				@Override
+				public void run() {
+					showToast("FPS: " + frameCount / (double) seconds);
+					
+				}
+			}, seconds * 1000);
+		}
+	}
 
 	private void showToast(String text) {
 		Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+	}
+	
+	/** Updates message display */
+	@Override
+	public boolean handleMessage(Message msg) {
+		
+		String ascii = (String) msg.obj;
+		showToast(ascii);
+		
+		//TODO: fix (doesn't do anything)
+		((TextView) findViewById(R.id.decoded_data)).setText("foo" + ascii);
+		
+		return true;
 	}
 }
