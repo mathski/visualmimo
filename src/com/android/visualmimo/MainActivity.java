@@ -78,12 +78,15 @@ import com.android.visualmimo.persistence.MIMOFrame;
  *
  */
 public class MainActivity extends Activity implements Callback{
-	/** Set to -1 to enable FPS benchmarking, else 0. */
+	private boolean benchingInProgress = false;
 	private int frameCount = 0;
+	
+	/** Set to false to bench under load. */
+	private boolean idleBenchMode = false;
 	
 	/** Flag and data for burst collection. */
 	private boolean burstMode = false;
-	private static final int BURST_SAVES = 10;
+	private static final int BURST_SAVES = 100;
 	private double[] accuracies;
 	
 	/** NDK: subtracts frame1 from frame2, overwriting frame1 */
@@ -501,12 +504,12 @@ public class MainActivity extends Activity implements Callback{
 				}
 			}).start();
 
-			if (recordingMode) {
+			if (recordingMode || (benchingInProgress && !idleBenchMode)) {
 				if (saveCount == 0) {
 					accuracies = new double[NUM_SAVES];
 				}
 				saveCount++;
-				if (saveCount <= NUM_SAVES) {
+				if (benchingInProgress || saveCount <= NUM_SAVES) {
 					// this handler will update the UI with the message below
 					final Handler handler = new Handler(this);
 					
@@ -524,22 +527,14 @@ public class MainActivity extends Activity implements Callback{
 									frames.first.getRaw(),
 									frames.second.getRaw(), imageWidth,
 									imageHeight,
-									frames.first.getCorners()[0][0],
-									frames.first.getCorners()[0][1],
-									frames.first.getCorners()[1][0],
-									frames.first.getCorners()[1][1],
-									frames.first.getCorners()[2][0],
-									frames.first.getCorners()[2][1],
-									frames.first.getCorners()[3][0],
-									frames.first.getCorners()[3][1],
-									frames.second.getCorners()[0][0],
-									frames.second.getCorners()[0][1],
-									frames.second.getCorners()[1][0],
-									frames.second.getCorners()[1][1],
-									frames.second.getCorners()[2][0],
-									frames.second.getCorners()[2][1],
-									frames.second.getCorners()[3][0],
-									frames.second.getCorners()[3][1]);
+									frames.first.getCorners()[0][0], frames.first.getCorners()[0][1],
+									frames.first.getCorners()[1][0], frames.first.getCorners()[1][1],
+									frames.first.getCorners()[2][0], frames.first.getCorners()[2][1],
+									frames.first.getCorners()[3][0], frames.first.getCorners()[3][1],
+									frames.second.getCorners()[0][0], frames.second.getCorners()[0][1],
+									frames.second.getCorners()[1][0], frames.second.getCorners()[1][1],
+									frames.second.getCorners()[2][0], frames.second.getCorners()[2][1],
+									frames.second.getCorners()[3][0], frames.second.getCorners()[3][1]);
 
 							MessageUtils.printGrid(message, System.out);
 							MessageUtils.printArray(message, System.out);
@@ -559,26 +554,28 @@ public class MainActivity extends Activity implements Callback{
 							System.out.println(accuracy2);
 							
 							// update UI
-							if (burstMode) {
-								if (index < NUM_SAVES) {
-									accuracies[index - 1] = Math.max(accuracy1, accuracy2);
-								}
-								
-								if (index == NUM_SAVES) {
-									double average = 0;
-									for (double a : accuracies) {
-										average += a;
+							if (!benchingInProgress) {
+								if (burstMode) {
+									if (index < NUM_SAVES) {
+										accuracies[index - 1] = Math.max(accuracy1, accuracy2);
 									}
-									average /= accuracies.length;
 									
+									if (index == NUM_SAVES) {
+										double average = 0;
+										for (double a : accuracies) {
+											average += a;
+										}
+										average /= accuracies.length;
+										
+										Message msg = new Message();
+										msg.obj = "Average accuracy: " + average;
+										handler.sendMessage(msg);
+									}
+								} else {
 									Message msg = new Message();
-									msg.obj = "Average accuracy: " + average;
+									msg.obj = accuracy1 > accuracy2 ? accuracy1 + ": " + ascii1 : accuracy2 + ": " + ascii2;
 									handler.sendMessage(msg);
 								}
-							} else {
-								Message msg = new Message();
-								msg.obj = accuracy1 > accuracy2 ? accuracy1 + ": " + ascii1 : accuracy2 + ": " + ascii2;
-								handler.sendMessage(msg);
 							}
 						}
 					}).start();
@@ -724,7 +721,15 @@ public class MainActivity extends Activity implements Callback{
 			}
 			return true;
 			
-		case R.id.action_fps:
+		case R.id.action_idle_fps:
+			idleBenchMode = true;
+			benchingInProgress = true;
+			frameCount = -1;
+			return true;
+			
+		case R.id.action_load_fps:
+			idleBenchMode = false;
+			benchingInProgress = true;
 			frameCount = -1;
 			return true;
 			
@@ -745,15 +750,15 @@ public class MainActivity extends Activity implements Callback{
 	}
 	
 	private void benchFPS() {
-		if (frameCount++ < 0) {
+		if (benchingInProgress && frameCount++ < 0) {
 			final int seconds = 10;
-			showToast("Benching FPS (" + seconds +"seconds)");
+			showToast("Benching " + (idleBenchMode ? "idle" : "load") + " FPS (" + seconds +"seconds)");
 			new Handler().postDelayed(new Runnable() {
 				
 				@Override
 				public void run() {
 					showToast("FPS: " + frameCount / (double) seconds);
-					
+					benchingInProgress = false;
 				}
 			}, seconds * 1000);
 		}
