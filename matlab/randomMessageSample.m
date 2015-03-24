@@ -52,7 +52,6 @@ sum(message)
 check = messageEncoder( alpha, height, width, message );
 check=uint8(check);
 
-assignin('base', 'check', check);
 
 img1=check+img;
 img2=img-check;
