@@ -41,37 +41,37 @@ for i = 0:(heightnum-1);
         for y = width + 1 : width + widthstep,
             for x = height + 1 : height + heightstep,
                 pixelvalue = 0;
-                if x > 1,
-                    if y > 1,
-                        pixelvalue =  pixelvalue + checkerboard(x-1, y-1)* mask(1);
+                if x > height + 1,
+                    if y > width + 1,
+                        pixelvalue =  pixelvalue + checkerboard(x-1, y-1, 1)* mask(1, x-height, y-width);
                     end
                     if y > 0,
-                        pixelvalue =  pixelvalue + checkerboard(x-1, y  )* mask(4);
+                        pixelvalue =  pixelvalue + checkerboard(x-1, y  , 1)* mask(4, x-height, y-width);
                     end
-                    if y < imheight,
-                        pixelvalue =  pixelvalue + checkerboard(x-1, y+1)* mask(7);
+                    if y < imwidth,
+                        pixelvalue =  pixelvalue + checkerboard(x-1, y+1, 1)* mask(7, x-height, y-width);
                     end
                 end
                 if x > 0,
-                    if y > 1,
-                        pixelvalue =  pixelvalue + checkerboard(x  , y-1)* mask(2);
+                    if y > width + 1,
+                        pixelvalue =  pixelvalue + checkerboard(x  , y-1, 1)* mask(2, x-height, y-width);
                     end
                     if y > 0,
-                        pixelvalue =  pixelvalue + checkerboard(x  , y  )* mask(5);
+                        pixelvalue =  pixelvalue + checkerboard(x  , y  , 1)* mask(5, x-height, y-width);
                     end
-                    if y < imheight,
-                        pixelvalue =  pixelvalue + checkerboard(x  , y+1)* mask(8);
+                    if y < imwidth,
+                        pixelvalue =  pixelvalue + checkerboard(x  , y+1, 1)* mask(8, x-height, y-width);
                     end
                 end
-                if x < imheight - 1,
-                    if y > 1,
-                        pixelvalue =  pixelvalue + checkerboard(x+1, y-1)* mask(3);
+                if x < height + heightstep,
+                    if y > width + 1,
+                        pixelvalue =  pixelvalue + checkerboard(x+1, y-1, 1)* mask(3, x-height, y-width);
                     end
                     if y > 0,
-                        pixelvalue =  pixelvalue + checkerboard(x+1, y  )* mask(6);
+                        pixelvalue =  pixelvalue + checkerboard(x+1, y  , 1)* mask(6, x-height, y-width);
                     end
-                    if y < imheight,
-                        pixelvalue =  pixelvalue + checkerboard(x+1, y+1)* mask(9);
+                    if y < imwidth,
+                        pixelvalue =  pixelvalue + checkerboard(x+1, y+1, 1)* mask(9, x-height, y-width);
                     end
                 end
                 

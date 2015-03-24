@@ -7,7 +7,7 @@ blurfilt = conv2([1 4 6 4 1], [1 4 6 4 1]')/256;
 for i = 1:repeatsize, blurfilt = conv2(blurfilt,blurfilt); end;
 
 img = zeros(nblock*blocksize,nblock*blocksize);
-border =25;
+border = 0;
 
 
 zblock = zeros(blocksize,blocksize);
