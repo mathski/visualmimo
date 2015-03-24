@@ -1,6 +1,5 @@
+function [finalmask] = MessageBlending(blocksize)
 
-
-blocksize = 25;
 nblock = 3; % Don't change this
 repeatsize = 5; % increases blurring between borders
 
@@ -8,8 +7,8 @@ blurfilt = conv2([1 4 6 4 1], [1 4 6 4 1]')/256;
 for i = 1:repeatsize, blurfilt = conv2(blurfilt,blurfilt); end;
 
 img = zeros(nblock*blocksize,nblock*blocksize);
-border = 5;
-border = 0;
+border =25;
+
 
 zblock = zeros(blocksize,blocksize);
 oblock = zeros(blocksize,blocksize);
@@ -34,10 +33,10 @@ mask(7,:,:) = [ zblock zblock zblock; zblock zblock zblock; oblock zblock zblock
 mask(8,:,:) = [ zblock zblock zblock; zblock zblock zblock; zblock oblock zblock];
 mask(9,:,:) = [ zblock zblock zblock; zblock zblock zblock; zblock zblock oblock];
 
-% check it
-for i = 1:9,
-currentmask = reshape(mask(i,:,:),nblock*blocksize,nblock*blocksize); figure(1);imagesc(currentmask);pause;
-end;
+% % check it
+% for i = 1:9,
+% currentmask = reshape(mask(i,:,:),nblock*blocksize,nblock*blocksize); figure(1);imagesc(currentmask);pause;
+% end;
 
 % Blurring
 for i = 1:9,
@@ -46,10 +45,10 @@ for i = 1:9,
     mask(i,:,:) = currentmask;
 end;
 
-% check it
-for i = 1:9,
-    currentmask = reshape(mask(i,:,:),nblock*blocksize,nblock*blocksize); figure(1);imagesc(currentmask);pause;
-end;
+% % check it
+% for i = 1:9,
+%     currentmask = reshape(mask(i,:,:),nblock*blocksize,nblock*blocksize); figure(1);imagesc(currentmask);pause;
+% end;
 
 
 
@@ -74,10 +73,10 @@ end;
 
 
 
-% check it
-for i = 1:9,
-currentmask = reshape(mask(i,:,:),nblock*blocksize,nblock*blocksize); figure(1);imagesc(currentmask);pause;
-end;
+% % check it
+% for i = 1:9,
+% currentmask = reshape(mask(i,:,:),nblock*blocksize,nblock*blocksize); figure(1);imagesc(currentmask);pause;
+% end;
 
 
 
@@ -90,10 +89,10 @@ end;
 % so crop off the rest
 finalmask = mask(:,(blocksize+1):2*blocksize,(blocksize+1):2*blocksize);
 
-% check it
-for i = 1:9,
-currentmask = reshape(finalmask(i,:,:),blocksize,blocksize); figure(1);imagesc(currentmask);pause;
-end;
+% % check it
+% for i = 1:9,
+% currentmask = reshape(finalmask(i,:,:),blocksize,blocksize); figure(1);imagesc(currentmask);pause;
+% end;
 
 
 
@@ -104,7 +103,7 @@ end;
 % all its neighbors). The 9 masks give the weights of each of the message
 % blocks for every pixel. 
 
-
+end
 
 
 

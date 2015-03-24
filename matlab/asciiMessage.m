@@ -1,4 +1,5 @@
 function [message] = asciiMessage(string, max_length)
+% encodes a string as 1's and 0's
 message = [];
 for i = 1:length(string)
     message = [message, dec2bin(uint8(string(i))) - '0'];

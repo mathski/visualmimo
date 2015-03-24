@@ -1,14 +1,14 @@
 function [ message ] = randomMessageSample()
 % :2:totalFrames
 numFrames=1000;
-fps = 29.8/2;
+fps = 5;
 alpha = 20;
 
 % ensure equal number on and off
 on_left = 10 * 8 / 2;
 off_left = 10 * 8 / 2;
 
-height = 420;
+height = 448;
 width = 560;
 
 [img, cmap] = imread('5','jpeg');
@@ -52,12 +52,15 @@ sum(message)
 check = messageEncoder( alpha, height, width, message );
 check=uint8(check);
 
+assignin('base', 'check', check);
+
 img1=check+img;
 img2=img-check;
+
 frames(1)=im2frame(img1,cmap);
 frames(2)=im2frame(img2,cmap);
 h = gcf;
-loc = [0,0,0,0];
+loc = [0,-30,0,0];
 
 %saveAVI(frames);
 movie(h,frames,numFrames,fps,loc);
