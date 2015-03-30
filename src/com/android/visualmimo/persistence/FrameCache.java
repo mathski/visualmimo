@@ -1,6 +1,7 @@
 package com.android.visualmimo.persistence;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import android.util.Pair;
@@ -13,7 +14,7 @@ public class FrameCache {
 
     private static FrameCache singleton;
     private final ReentrantReadWriteLock mRWLock;
-    //Current implementation only stores 2 frames
+    private static final int BUFFER_SIZE = 4;
     private LinkedList<MIMOFrame> buffer;
     private volatile boolean changed;
 
@@ -32,7 +33,7 @@ public class FrameCache {
     public void addFrame(byte[] frameData, int width,  int height, float[][] corners) {
         mRWLock.writeLock().lock();
         try{
-            if(buffer.size() == 2)
+            if(buffer.size() == BUFFER_SIZE)
                 buffer.remove(0);
 
             buffer.add(new MIMOFrame(frameData, width, height, corners));
@@ -45,7 +46,7 @@ public class FrameCache {
 
     /**
      *
-     * @param recentPosition Accepted values are currently only 0 or 1
+     * @param recentPosition
      * @return A buffered frame
      */
     public MIMOFrame getRecentFrame(int recentPosition) {
@@ -64,17 +65,18 @@ public class FrameCache {
     }
     
     /**
-     * @return the two most recent frames.
+     * @return the BUFFER_SIZE most recent frames.
      * Needed because calling getRecentFrame() twice isn't atomic.
      */
-    public Pair<MIMOFrame, MIMOFrame> getLastTwoFrames() {
-    	if (buffer.size() < 2) {
+    public List<MIMOFrame> getBufferFrames() {
+    	if (buffer.size() < BUFFER_SIZE) {
+    		System.out.println("Attempted to get frames before buffer filled.");
     		return null;
     	}
     	
     	mRWLock.readLock().lock();
     	try {
-    		return new Pair<MIMOFrame, MIMOFrame>(buffer.get(0), buffer.get(1));
+    		return (List<MIMOFrame>) buffer.clone();
     	} finally {
     		mRWLock.readLock().unlock();
     	}

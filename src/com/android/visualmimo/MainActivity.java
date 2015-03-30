@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import android.app.Activity;
@@ -90,11 +91,14 @@ public class MainActivity extends Activity implements Callback{
 	private double[] accuracies;
 	
 	/** NDK: subtracts frame1 from frame2, overwriting frame1 */
-	private native boolean[] frameSubtraction(byte[] frame1, byte[] frame2,
+	private native boolean[] frameSubtraction(byte[] frame1, byte[] frame2, byte[] frame3, byte[] frame4,
 			int width, int height, float c0x1, float c0y1, float c1x1,
 			float c1y1, float c2x1, float c2y1, float c3x1, float c3y1,
 			float c0x2, float c0y2, float c1x2, float c1y2, float c2x2,
-			float c2y2, float c3x2, float c3y2);
+			float c2y2, float c3x2, float c3y2, float c0x3, float c0y3,
+			float c1x3, float c1y3, float c2x3, float c2y3, float c3x3,
+			float c3y3, float c0x4, float c0y4, float c1x4, float c1y4,
+			float c2x4, float c2y4, float c3x4, float c3y4);
 
 	/** The number of images to save when we are recording. */
 	private int NUM_SAVES = 1;
@@ -519,22 +523,32 @@ public class MainActivity extends Activity implements Callback{
 					new Thread(new Runnable() {
 						public void run() {
 							// perform operations in NDK
-							Pair<MIMOFrame, MIMOFrame> frames = cache
-									.getLastTwoFrames();
+							List<MIMOFrame> frames = cache.getBufferFrames();
 
 							// NDK call: handles subtraction and saving
 							boolean[] message = frameSubtraction(
-									frames.first.getRaw(),
-									frames.second.getRaw(), imageWidth,
+									frames.get(0).getRaw(),
+									frames.get(1).getRaw(),
+									frames.get(2).getRaw(),
+									frames.get(3).getRaw(),
+									imageWidth,
 									imageHeight,
-									frames.first.getCorners()[0][0], frames.first.getCorners()[0][1],
-									frames.first.getCorners()[1][0], frames.first.getCorners()[1][1],
-									frames.first.getCorners()[2][0], frames.first.getCorners()[2][1],
-									frames.first.getCorners()[3][0], frames.first.getCorners()[3][1],
-									frames.second.getCorners()[0][0], frames.second.getCorners()[0][1],
-									frames.second.getCorners()[1][0], frames.second.getCorners()[1][1],
-									frames.second.getCorners()[2][0], frames.second.getCorners()[2][1],
-									frames.second.getCorners()[3][0], frames.second.getCorners()[3][1]);
+									frames.get(0).getCorners()[0][0], frames.get(0).getCorners()[0][1],
+									frames.get(0).getCorners()[1][0], frames.get(0).getCorners()[1][1],
+									frames.get(0).getCorners()[2][0], frames.get(0).getCorners()[2][1],
+									frames.get(0).getCorners()[3][0], frames.get(0).getCorners()[3][1],
+									frames.get(1).getCorners()[0][0], frames.get(1).getCorners()[0][1],
+									frames.get(1).getCorners()[1][0], frames.get(1).getCorners()[1][1],
+									frames.get(1).getCorners()[2][0], frames.get(1).getCorners()[2][1],
+									frames.get(1).getCorners()[3][0], frames.get(1).getCorners()[3][1],
+									frames.get(2).getCorners()[0][0], frames.get(2).getCorners()[0][1],
+									frames.get(2).getCorners()[1][0], frames.get(2).getCorners()[1][1],
+									frames.get(2).getCorners()[2][0], frames.get(2).getCorners()[2][1],
+									frames.get(2).getCorners()[3][0], frames.get(2).getCorners()[3][1],
+									frames.get(3).getCorners()[0][0], frames.get(3).getCorners()[0][1],
+									frames.get(3).getCorners()[1][0], frames.get(3).getCorners()[1][1],
+									frames.get(3).getCorners()[2][0], frames.get(3).getCorners()[2][1],
+									frames.get(3).getCorners()[3][0], frames.get(3).getCorners()[3][1]);
 
 							MessageUtils.printGrid(message, System.out);
 							MessageUtils.printArray(message, System.out);
