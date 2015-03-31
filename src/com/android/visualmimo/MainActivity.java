@@ -555,25 +555,16 @@ public class MainActivity extends Activity implements Callback{
 							MessageUtils.printGrid(message, System.out);
 							MessageUtils.printArray(message, System.out);
 							
-							// cheating until we get synchronization: try pattern and inverse, use best
-							String ascii1 = MessageUtils.parseMessage(message);
-							double accuracy1 = MessageUtils.checkAccuracy(message);
-							System.out.println(ascii1);
-							System.out.println(accuracy1);
-							
-							System.out.println("Inverting message...");
-							MessageUtils.invertPattern(message);
-							
-							String ascii2 = MessageUtils.parseMessage(message);
-							double accuracy2 = MessageUtils.checkAccuracy(message);
-							System.out.println(ascii2);
-							System.out.println(accuracy2);
+							String ascii = MessageUtils.parseMessage(message);
+							double accuracy = MessageUtils.checkAccuracy(message);
+							System.out.println(ascii);
+							System.out.println(accuracy);
 							
 							// update UI
 							if (!benchingInProgress) {
 								if (burstMode) {
 									if (index < NUM_SAVES) {
-										accuracies[index - 1] = Math.max(accuracy1, accuracy2);
+										accuracies[index - 1] = accuracy;
 									}
 									
 									if (index == NUM_SAVES) {
@@ -589,7 +580,7 @@ public class MainActivity extends Activity implements Callback{
 									}
 								} else {
 									Message msg = new Message();
-									msg.obj = accuracy1 > accuracy2 ? accuracy1 + ": " + ascii1 : accuracy2 + ": " + ascii2;
+									msg.obj = accuracy + ": " + ascii;
 									handler.sendMessage(msg);
 								}
 							}

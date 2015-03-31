@@ -224,8 +224,13 @@ extern "C" {
 			  && pair_1_2 > pair_2_3
 			  && pair_1_2 > pair_2_4
 			  && pair_1_2 > pair_3_4) {
-		  good_image1 = &target1;
-		  good_image2 = &target2;
+		  if (in1 < in2) {
+			  good_image1 = &target1;
+			  good_image2 = &target2;
+		  } else {
+			  good_image1 = &target2;
+			  good_image2 = &target1;
+		  }
 		  //target3.release();
 		  //target4.release();
 		  threshold = (in1 + in2) / 6;
@@ -234,8 +239,13 @@ extern "C" {
 			  && pair_1_3 > pair_2_3
 			  && pair_1_3 > pair_2_4
 			  && pair_1_3 > pair_3_4) {
-		  good_image1 = &target1;
-		  good_image2 = &target3;
+		  if (in1 < in3) {
+			  good_image1 = &target1;
+			  good_image2 = &target3;
+		  } else {
+			  good_image1 = &target3;
+			  good_image2 = &target1;
+		  }
 		  //target2.release();
 		  //target4.release();
 		  threshold = (in1 + in3) / 6;
@@ -243,30 +253,50 @@ extern "C" {
 	  } else if (pair_1_4 > pair_2_3
 			  && pair_1_4 > pair_2_4
 			  && pair_1_4 > pair_3_4) {
-		  good_image1 = &target1;
-		  good_image2 = &target4;
+		  if (in1 < in4) {
+			  good_image1 = &target1;
+			  good_image2 = &target4;
+		  } else {
+			  good_image1 = &target4;
+			  good_image2 = &target1;
+		  }
 		  //target2.release();
 		  //target3.release();
 		  threshold = (in1 + in4) / 6;
 		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "1 and 4");
 	  } else if (pair_2_3 > pair_2_4
 			  && pair_2_3 > pair_3_4) {
-		  good_image1 = &target2;
-		  good_image2 = &target3;
+		  if (in2 < in3) {
+			  good_image1 = &target2;
+			  good_image2 = &target3;
+		  } else {
+			  good_image1 = &target3;
+			  good_image2 = &target2;
+		  }
 		  //target1.release();
 		  //target4.release();
 		  threshold = (in2 + in3) / 6;
 		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "2 and 3");
 	  } else if (pair_2_4 > pair_3_4) {
-		  good_image1 = &target2;
-		  good_image2 = &target4;
+		  if (in2 < in4) {
+			  good_image1 = &target2;
+			  good_image2 = &target4;
+		  } else {
+			  good_image1 = &target4;
+			  good_image2 = &target2;
+		  }
 		  //target3.release();
 		  //target4.release();
 		  threshold = (in2 + in4) / 6;
 		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "2 and 4");
 	  } else {
-		  good_image1 = &target3;
-		  good_image2 = &target4;
+		  if (in3 < in4) {
+			  good_image1 = &target3;
+			  good_image2 = &target4;
+		  } else {
+			  good_image1 = &target4;
+			  good_image2 = &target3;
+		  }
 		  //target1.release();
 		  //target2.release();
 		  threshold = (in3 + in4) / 6;
@@ -274,6 +304,8 @@ extern "C" {
 	  }
 
 
+	  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [threshold: %d]", threshold);
+	  
       //imwrite("/sdcard/vmimo-frame1-noeq.bmp", target1);
 
       histogramEqualization(*good_image1);
