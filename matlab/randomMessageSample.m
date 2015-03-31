@@ -1,8 +1,8 @@
 function [ message ] = randomMessageSample()
 % :2:totalFrames
-numFrames=1000;
-fps = 5;
-alpha = 20;
+numFrames=10000;
+fps = 8;
+alpha = 40;
 
 % ensure equal number on and off
 on_left = 10 * 8 / 2;
@@ -46,18 +46,20 @@ img=uint8(img*255);
 % 
 % on_left
 % off_left
-message = asciiMessage('abcdefghijk', 80);
-sum(message)
+messages = {'abcdefghijk'; 'lmnopqrstuv'};
+frames = [];
+for i = 1:length(messages);
+    message = asciiMessage(messages{i}, 80);
+    
+    check = messageEncoder( alpha, height, width, message );
+    check=uint8(check);
 
-check = messageEncoder( alpha, height, width, message );
-check=uint8(check);
+    img1=img+check;
+    img2=img-check;
 
-
-img1=check+img;
-img2=img-check;
-
-frames(1)=im2frame(img1,cmap);
-frames(2)=im2frame(img2,cmap);
+    frames = [frames im2frame(img1,cmap)];
+    frames = [frames im2frame(img2,cmap)];
+end
 h = gcf;
 loc = [0,-30,0,0];
 
