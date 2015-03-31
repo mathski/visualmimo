@@ -519,11 +519,13 @@ public class MainActivity extends Activity implements Callback{
 					
 					final int index = saveCount;
 					
+					final List<MIMOFrame> frames = cache.getBufferFrames();
+					
 					// this thread will extract the message
 					new Thread(new Runnable() {
 						public void run() {
 							// perform operations in NDK
-							List<MIMOFrame> frames = cache.getBufferFrames();
+							
 
 							// NDK call: handles subtraction and saving
 							boolean[] message = frameSubtraction(

@@ -213,10 +213,10 @@ extern "C" {
 
 	  int threshold;
 
-      imwrite("/sdcard/vmimo-frame1.bmp", target1);
-      imwrite("/sdcard/vmimo-frame2.bmp", target2);
-      imwrite("/sdcard/vmimo-frame3.bmp", target3);
-      imwrite("/sdcard/vmimo-frame4.bmp", target4);
+      //imwrite("/sdcard/vmimo-frame1.bmp", target1);
+      //imwrite("/sdcard/vmimo-frame2.bmp", target2);
+      //imwrite("/sdcard/vmimo-frame3.bmp", target3);
+      //imwrite("/sdcard/vmimo-frame4.bmp", target4);
 	  Mat *good_image1;
 	  Mat *good_image2;
 	  if (pair_1_2 > pair_1_3
@@ -226,8 +226,8 @@ extern "C" {
 			  && pair_1_2 > pair_3_4) {
 		  good_image1 = &target1;
 		  good_image2 = &target2;
-		  target3.release();
-		  target4.release();
+		  //target3.release();
+		  //target4.release();
 		  threshold = (in1 + in2) / 6;
 		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "1 and 2");
 	  } else if (pair_1_3 > pair_1_4
@@ -236,8 +236,8 @@ extern "C" {
 			  && pair_1_3 > pair_3_4) {
 		  good_image1 = &target1;
 		  good_image2 = &target3;
-		  target2.release();
-		  target4.release();
+		  //target2.release();
+		  //target4.release();
 		  threshold = (in1 + in3) / 6;
 		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "1 and 3");
 	  } else if (pair_1_4 > pair_2_3
@@ -245,30 +245,30 @@ extern "C" {
 			  && pair_1_4 > pair_3_4) {
 		  good_image1 = &target1;
 		  good_image2 = &target4;
-		  target2.release();
-		  target3.release();
+		  //target2.release();
+		  //target3.release();
 		  threshold = (in1 + in4) / 6;
 		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "1 and 4");
 	  } else if (pair_2_3 > pair_2_4
 			  && pair_2_3 > pair_3_4) {
 		  good_image1 = &target2;
 		  good_image2 = &target3;
-		  target1.release();
-		  target4.release();
+		  //target1.release();
+		  //target4.release();
 		  threshold = (in2 + in3) / 6;
 		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "2 and 3");
 	  } else if (pair_2_4 > pair_3_4) {
 		  good_image1 = &target2;
 		  good_image2 = &target4;
-		  target3.release();
-		  target4.release();
+		  //target3.release();
+		  //target4.release();
 		  threshold = (in2 + in4) / 6;
 		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "2 and 4");
 	  } else {
 		  good_image1 = &target3;
 		  good_image2 = &target4;
-		  target1.release();
-		  target2.release();
+		  //target1.release();
+		  //target2.release();
 		  threshold = (in3 + in4) / 6;
 		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "3 and 4");
 	  }
