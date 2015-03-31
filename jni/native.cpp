@@ -177,20 +177,31 @@ extern "C" {
       Mat reshapedImage2 = matImage2.reshape(3, height);
       Mat reshapedImage3 = matImage3.reshape(3, height);
       Mat reshapedImage4 = matImage4.reshape(3, height);
-	  matImage1.release();
-	  matImage2.release();
-	  matImage3.release();
-	  matImage4.release();
+	  //matImage1.release();
+	  //matImage2.release();
+	  //matImage3.release();
+	  //matImage4.release();
+
+
+      // Define the destination image
+      cv::Mat target1 = cv::Mat::zeros(width, height, CV_8UC1);
+      cv::Mat target2 = cv::Mat::zeros(width, height, CV_8UC1);
+      cv::Mat target3 = cv::Mat::zeros(width, height, CV_8UC1);
+      cv::Mat target4 = cv::Mat::zeros(width, height, CV_8UC1);
+      projectiveTransform(reshapedImage1, target1, c0x1, c0y1, c1x1, c1y1, c2x1, c2y1, c3x1, c3y1);
+      projectiveTransform(reshapedImage2, target2, c0x2, c0y2, c1x2, c1y2, c2x2, c2y2, c3x2, c3y2);
+      projectiveTransform(reshapedImage3, target3, c0x3, c0y3, c1x3, c1y3, c2x3, c2y3, c3x3, c3y3);
+      projectiveTransform(reshapedImage4, target4, c0x4, c0y4, c1x4, c1y4, c2x4, c2y4, c3x4, c3y4);
 
 	  // Find best pair of frames
 	  Scalar m;
-	  m = mean(reshapedImage1);
+	  m = mean(target1);
 	  int in1 = m[0] + m[1] + m[2];
-	  m = mean(reshapedImage2);
+	  m = mean(target2);
 	  int in2 = m[0] + m[1] + m[2];
-	  m = mean(reshapedImage3);
+	  m = mean(target3);
 	  int in3 = m[0] + m[1] + m[2];
-	  m = mean(reshapedImage4);
+	  m = mean(target4);
 	  int in4 = m[0] + m[1] + m[2];
 
 	  int pair_1_2 = abs(in1 - in2);
@@ -202,6 +213,10 @@ extern "C" {
 
 	  int threshold;
 
+      imwrite("/sdcard/vmimo-frame1.bmp", target1);
+      imwrite("/sdcard/vmimo-frame2.bmp", target2);
+      imwrite("/sdcard/vmimo-frame3.bmp", target3);
+      imwrite("/sdcard/vmimo-frame4.bmp", target4);
 	  Mat *good_image1;
 	  Mat *good_image2;
 	  if (pair_1_2 > pair_1_3
@@ -209,75 +224,75 @@ extern "C" {
 			  && pair_1_2 > pair_2_3
 			  && pair_1_2 > pair_2_4
 			  && pair_1_2 > pair_3_4) {
-		  good_image1 = &reshapedImage1;
-		  good_image2 = &reshapedImage2;
-		  reshapedImage3.release();
-		  reshapedImage4.release();
-		  threshold = (in1 + in2) / 2;
+		  good_image1 = &target1;
+		  good_image2 = &target2;
+		  target3.release();
+		  target4.release();
+		  threshold = (in1 + in2) / 6;
+		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "1 and 2");
 	  } else if (pair_1_3 > pair_1_4
 			  && pair_1_3 > pair_2_3
 			  && pair_1_3 > pair_2_4
 			  && pair_1_3 > pair_3_4) {
-		  good_image1 = &reshapedImage1;
-		  good_image2 = &reshapedImage3;
-		  reshapedImage2.release();
-		  reshapedImage4.release();
-		  threshold = (in1 + in3) / 2;
+		  good_image1 = &target1;
+		  good_image2 = &target3;
+		  target2.release();
+		  target4.release();
+		  threshold = (in1 + in3) / 6;
+		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "1 and 3");
 	  } else if (pair_1_4 > pair_2_3
 			  && pair_1_4 > pair_2_4
 			  && pair_1_4 > pair_3_4) {
-		  good_image1 = &reshapedImage1;
-		  good_image2 = &reshapedImage4;
-		  reshapedImage2.release();
-		  reshapedImage3.release();
-		  threshold = (in1 + in4) / 2;
+		  good_image1 = &target1;
+		  good_image2 = &target4;
+		  target2.release();
+		  target3.release();
+		  threshold = (in1 + in4) / 6;
+		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "1 and 4");
 	  } else if (pair_2_3 > pair_2_4
 			  && pair_2_3 > pair_3_4) {
-		  good_image1 = &reshapedImage2;
-		  good_image2 = &reshapedImage3;
-		  reshapedImage1.release();
-		  reshapedImage4.release();
-		  threshold = (in2 + in3) / 2;
+		  good_image1 = &target2;
+		  good_image2 = &target3;
+		  target1.release();
+		  target4.release();
+		  threshold = (in2 + in3) / 6;
+		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "2 and 3");
 	  } else if (pair_2_4 > pair_3_4) {
-		  good_image1 = &reshapedImage2;
-		  good_image2 = &reshapedImage4;
-		  reshapedImage3.release();
-		  reshapedImage4.release();
-		  threshold = (in2 + in4) / 2;
+		  good_image1 = &target2;
+		  good_image2 = &target4;
+		  target3.release();
+		  target4.release();
+		  threshold = (in2 + in4) / 6;
+		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "2 and 4");
 	  } else {
-		  good_image1 = &reshapedImage3;
-		  good_image2 = &reshapedImage4;
-		  reshapedImage1.release();
-		  reshapedImage2.release();
-		  threshold = (in3 + in4) / 2;
+		  good_image1 = &target3;
+		  good_image2 = &target4;
+		  target1.release();
+		  target2.release();
+		  threshold = (in3 + in4) / 6;
+		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "3 and 4");
 	  }
 
 
-      // Define the destination image
-      cv::Mat target1 = cv::Mat::zeros(width, height, CV_8UC1);
-      cv::Mat target2 = cv::Mat::zeros(width, height, CV_8UC1);
-      projectiveTransform(*good_image1, target1, c0x1, c0y1, c1x1, c1y1, c2x1, c2y1, c3x1, c3y1);
-      projectiveTransform(*good_image2, target2, c0x2, c0y2, c1x2, c1y2, c2x2, c2y2, c3x2, c3y2);
-
       //imwrite("/sdcard/vmimo-frame1-noeq.bmp", target1);
 
-      histogramEqualization(target1);
-      histogramEqualization(target2);
+      histogramEqualization(*good_image1);
+      histogramEqualization(*good_image2);
 
       //imwrite("/sdcard/vmimo-frame1.bmp", target1);
       //imwrite("/sdcard/vmimo-frame2.bmp", target2);
 
       // Subtract, overwrite first.
-      subtract(target1, target2, target1);
+      subtract(*good_image1, *good_image2, *good_image1);
 
 	  // Extract message
 	  int width_blocks = 10;
 	  int height_blocks = 8;
 	  int num_blocks = width_blocks * height_blocks;
 	  jboolean message[num_blocks];
-	  extractMessage(target1, message, width, height, width_blocks, height_blocks, threshold);
+	  extractMessage(*good_image1, message, width, height, width_blocks, height_blocks, threshold);
 
-	  // TODO: do something with the message
+	  // return message
 	  jbooleanArray message_jboolean = env->NewBooleanArray(num_blocks);
 	  env->SetBooleanArrayRegion(message_jboolean, 0, num_blocks, message);
 

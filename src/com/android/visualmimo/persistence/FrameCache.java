@@ -69,9 +69,9 @@ public class FrameCache {
      * Needed because calling getRecentFrame() twice isn't atomic.
      */
     public List<MIMOFrame> getBufferFrames() {
-    	if (buffer.size() < BUFFER_SIZE) {
+    	while (buffer.size() < BUFFER_SIZE) {
+    		//BUSY LOCK: BAD
     		System.out.println("Attempted to get frames before buffer filled.");
-    		return null;
     	}
     	
     	mRWLock.readLock().lock();
