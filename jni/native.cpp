@@ -177,11 +177,6 @@ extern "C" {
       Mat reshapedImage2 = matImage2.reshape(3, height);
       Mat reshapedImage3 = matImage3.reshape(3, height);
       Mat reshapedImage4 = matImage4.reshape(3, height);
-	  //matImage1.release();
-	  //matImage2.release();
-	  //matImage3.release();
-	  //matImage4.release();
-
 
       // Define the destination image
       cv::Mat target1 = cv::Mat::zeros(width, height, CV_8UC1);
@@ -211,8 +206,6 @@ extern "C" {
 	  int pair_2_4 = abs(in2 - in4);
 	  int pair_3_4 = abs(in3 - in4);
 
-	  int threshold;
-
       //imwrite("/sdcard/vmimo-frame1.bmp", target1);
       //imwrite("/sdcard/vmimo-frame2.bmp", target2);
       //imwrite("/sdcard/vmimo-frame3.bmp", target3);
@@ -231,9 +224,6 @@ extern "C" {
 			  good_image1 = &target2;
 			  good_image2 = &target1;
 		  }
-		  //target3.release();
-		  //target4.release();
-		  threshold = (in1 + in2) / 6;
 		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "1 and 2");
 	  } else if (pair_1_3 > pair_1_4
 			  && pair_1_3 > pair_2_3
@@ -246,9 +236,6 @@ extern "C" {
 			  good_image1 = &target3;
 			  good_image2 = &target1;
 		  }
-		  //target2.release();
-		  //target4.release();
-		  threshold = (in1 + in3) / 6;
 		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "1 and 3");
 	  } else if (pair_1_4 > pair_2_3
 			  && pair_1_4 > pair_2_4
@@ -260,9 +247,6 @@ extern "C" {
 			  good_image1 = &target4;
 			  good_image2 = &target1;
 		  }
-		  //target2.release();
-		  //target3.release();
-		  threshold = (in1 + in4) / 6;
 		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "1 and 4");
 	  } else if (pair_2_3 > pair_2_4
 			  && pair_2_3 > pair_3_4) {
@@ -273,9 +257,6 @@ extern "C" {
 			  good_image1 = &target3;
 			  good_image2 = &target2;
 		  }
-		  //target1.release();
-		  //target4.release();
-		  threshold = (in2 + in3) / 6;
 		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "2 and 3");
 	  } else if (pair_2_4 > pair_3_4) {
 		  if (in2 < in4) {
@@ -285,9 +266,6 @@ extern "C" {
 			  good_image1 = &target4;
 			  good_image2 = &target2;
 		  }
-		  //target3.release();
-		  //target4.release();
-		  threshold = (in2 + in4) / 6;
 		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "2 and 4");
 	  } else {
 		  if (in3 < in4) {
@@ -297,25 +275,22 @@ extern "C" {
 			  good_image1 = &target4;
 			  good_image2 = &target3;
 		  }
-		  //target1.release();
-		  //target2.release();
-		  threshold = (in3 + in4) / 6;
 		  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", "3 and 4");
 	  }
 
 
-	  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [threshold: %d]", threshold);
-	  
-      //imwrite("/sdcard/vmimo-frame1-noeq.bmp", target1);
-
+	  // Histogram equalization.
+	  // Optimally we'd apply the same transformation to each image, but this is pretty close.
       histogramEqualization(*good_image1);
       histogramEqualization(*good_image2);
 
-      //imwrite("/sdcard/vmimo-frame1.bmp", target1);
-      //imwrite("/sdcard/vmimo-frame2.bmp", target2);
-
       // Subtract, overwrite first.
       subtract(*good_image1, *good_image2, *good_image1);
+
+	  // Threshold for message extraction is average intensity of difference.
+	  m = mean(*good_image1);
+	  int threshold = m[0] + m[1] + m[2];
+	  __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [threshold: %d]", threshold);
 
 	  // Extract message
 	  int width_blocks = 10;
