@@ -21,5 +21,10 @@
         android:title="Load FPS"
         android:showAsAction="never"
         />
+        
+    <item android:id="@+id/action_get_message"
+        android:title="Get Message"
+        android:showAsAction="never"
+        />
 
 </menu>

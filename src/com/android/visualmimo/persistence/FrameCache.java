@@ -70,7 +70,7 @@ public class FrameCache {
      */
     public List<MIMOFrame> getBufferFrames() {
     	while (buffer.size() < BUFFER_SIZE) {
-    		//BUSY LOCK: BAD
+    		//BUSY LOCK: BAD (TODO)
     		System.out.println("Attempted to get frames before buffer filled.");
     	}
     	

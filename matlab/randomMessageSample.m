@@ -49,7 +49,7 @@ img=uint8(img*255);
 messages = {'abcdefghijk'; 'lmnopqrstuv'};
 frames = [];
 for i = 1:length(messages);
-    message = asciiMessage(messages{i}, 80);
+    message = asciiMessage(messages{i}, 80, i-1);
     
     check = messageEncoder( alpha, height, width, message );
     check=uint8(check);

@@ -69,12 +69,13 @@ import com.qualcomm.vuforia.samples.SampleApplication.utils.LoadingDialogHandler
 import com.qualcomm.vuforia.samples.SampleApplication.utils.SampleApplicationGLView;
 import com.android.visualmimo.R;
 import com.android.visualmimo.camera.ImageTargetRenderer;
+import com.android.visualmimo.message.MIMOMessage;
 import com.android.visualmimo.persistence.FrameCache;
 import com.android.visualmimo.persistence.MIMOFrame;
 
 /**
  * Activity that handles everything: Vuforia, UI.
- * 
+ * TODO: refactor the MIMO logic out into its own class.
  * @author revan
  *
  */
@@ -89,6 +90,8 @@ public class MainActivity extends Activity implements Callback{
 	private boolean burstMode = false;
 	private static final int BURST_SAVES = 100;
 	private double[] accuracies;
+	
+	final private MIMOMessage messageBuilder = new MIMOMessage();
 	
 	/** NDK: subtracts frame1 from frame2, overwriting frame1 */
 	private native boolean[] frameSubtraction(byte[] frame1, byte[] frame2, byte[] frame3, byte[] frame4,
@@ -555,6 +558,8 @@ public class MainActivity extends Activity implements Callback{
 							MessageUtils.printGrid(message, System.out);
 							MessageUtils.printArray(message, System.out);
 							
+							messageBuilder.addPattern(message);
+							
 							String ascii = MessageUtils.parseMessage(message);
 							double accuracy = MessageUtils.checkAccuracy(message);
 							System.out.println(ascii);
@@ -702,6 +707,10 @@ public class MainActivity extends Activity implements Callback{
 
 		saveCount = 0;
 	}
+	
+	private void displayCurrentMessage() {
+		showToast(messageBuilder.getMessage());
+	}
 
 
 	/** Handles ActionBar presses. */
@@ -738,6 +747,10 @@ public class MainActivity extends Activity implements Callback{
 			idleBenchMode = false;
 			benchingInProgress = true;
 			frameCount = -1;
+			return true;
+			
+		case R.id.action_get_message:
+			displayCurrentMessage();
 			return true;
 			
 		default:
