@@ -1,8 +1,8 @@
 function [ message ] = randomMessageSample()
 
 numFrames=10000;
-fps = 12;
-alpha = 10;
+fps = 2;
+alpha = 20;
 
 height = 448;
 width = 560;
@@ -17,23 +17,24 @@ img=imresize(img, [height width]);
 % HSV conversion
 img = rgb2hsv(img);
 % Histogram Equalize Intensity Channel
-img(:,:,3) = histeq(img(:,:,3), 256);
+% img(:,:,3) = histeq(img(:,:,3), 256);
 % RGB conversion
 img=hsv2rgb(img);
-img=uint8(img*255);
-
+% img=uint8(img*255);
 
 messages = {'abcdefghijk'; 'lmnopqrstuv'};
 frames = [];
 for i = 1:length(messages);
     message = asciiMessage(messages{i}, 80, i-1);
     
-    check = messageEncoder( alpha, height, width, message );
-    check=uint8(check);
+    sync_bit = mod(i, 2);
+    if sync_bit == 0;
+        sync_bit = -1;
+    end
 
-    img1=img+check;
-    img2=img-check;
-
+    img1=uint8(img * 255 + messageEncoder(alpha, height, width, 8, 10, message, 0, sync_bit));
+    img2=uint8(img * 255 + messageEncoder(alpha, height, width, 8, 10, message, 1, sync_bit));
+    
     frames = [frames im2frame(img1,cmap)];
     frames = [frames im2frame(img2,cmap)];
 end

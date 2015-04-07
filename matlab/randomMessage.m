@@ -1,4 +1,5 @@
 function [message] = randomMessage(length, width)
+% Returns a random series of bits, with the same number on as off.
 
 % ensure equal number on and off
 on_left = length * width / 2;
