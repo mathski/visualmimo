@@ -53,18 +53,14 @@ extern "C" {
 	 * Performs projective transform on image. For given set of corners, skews
 	 * image to known ratio.
 	 */
-    void projectiveTransform(Mat &image, Mat &dest,
-        jfloat c0x, jfloat c0y,
-        jfloat c1x, jfloat c1y,
-        jfloat c2x, jfloat c2y,
-        jfloat c3x, jfloat c3y) {
+    void projectiveTransform(Mat &image, Mat &dest, jfloat* c) {
 
       //perspective transform
       std::vector<Point2f> corners;
-      corners.push_back(cv::Point2f(c0x, c0y));
-      corners.push_back(cv::Point2f(c1x, c1y));
-      corners.push_back(cv::Point2f(c2x, c2y));
-      corners.push_back(cv::Point2f(c3x, c3y));
+      corners.push_back(cv::Point2f(c[0], c[1]));
+      corners.push_back(cv::Point2f(c[2], c[3]));
+      corners.push_back(cv::Point2f(c[4], c[5]));
+      corners.push_back(cv::Point2f(c[6], c[7]));
 
       // Get mass center
       cv::Point2f center(0,0);
@@ -124,9 +120,22 @@ extern "C" {
 				// Get region of interest
 				Mat block = image(Rect(i, j, block_height, block_width));
 				Scalar m = mean(block);
-				message[k++] = (m[0] + m[1] + m[2] > cutoff) ? true : false;
+				message[k++] = (m[0] + m[1] + m[2] > cutoff);
 			}
 		}
+	}
+
+	/**
+	 * Extracts the message of the bottom right block (sync bit), using average to determine on/off state.
+	 */
+	bool getSyncBit(Mat &image, int width, int height, int width_blocks, int height_blocks, int cutoff) {
+		int block_width = width / width_blocks;
+		int block_height = height / height_blocks;
+
+		Mat block = image(Rect(height - block_height, width - block_width, block_height, block_width));
+		Scalar m = mean(block);
+
+		return (m[0] + m[1] + m[2] > cutoff);
 	}
 
     /**
@@ -135,27 +144,7 @@ extern "C" {
      */
     JNIEXPORT jbooleanArray Java_com_android_visualmimo_MainActivity_frameSubtraction(JNIEnv *env, jobject obj,
         jbyteArray frame1, jbyteArray frame2, jbyteArray frame3, jbyteArray frame4,
-        jint width, jint height,
-        jfloat c0x1, jfloat c0y1,
-        jfloat c1x1, jfloat c1y1,
-        jfloat c2x1, jfloat c2y1,
-        jfloat c3x1, jfloat c3y1,
-
-        jfloat c0x2, jfloat c0y2,
-        jfloat c1x2, jfloat c1y2,
-        jfloat c2x2, jfloat c2y2,
-        jfloat c3x2, jfloat c3y2,
-
-        jfloat c0x3, jfloat c0y3,
-        jfloat c1x3, jfloat c1y3,
-        jfloat c2x3, jfloat c2y3,
-        jfloat c3x3, jfloat c3y3,
-
-        jfloat c0x4, jfloat c0y4,
-        jfloat c1x4, jfloat c1y4,
-        jfloat c2x4, jfloat c2y4,
-        jfloat c3x4, jfloat c3y4
-        )
+        jint width, jint height, jfloatArray corners1, jfloatArray corners2, jfloatArray corners3, jfloatArray corners4)
     {
       //f1 and f2 are the byte data of the two frames, l1 and l2 are the array lengths
       jbyte* f1 = env->GetByteArrayElements(frame1, NULL);
@@ -163,6 +152,12 @@ extern "C" {
       jbyte* f3 = env->GetByteArrayElements(frame3, NULL);
       jbyte* f4 = env->GetByteArrayElements(frame4, NULL);
       jsize l1 = env->GetArrayLength(frame1);
+
+	  //c1 to c4 are arrays of coners: c0x, c0y, c1x, c1y
+	  jfloat* c1 = env->GetFloatArrayElements(corners1, NULL);
+	  jfloat* c2 = env->GetFloatArrayElements(corners2, NULL);
+	  jfloat* c3 = env->GetFloatArrayElements(corners3, NULL);
+	  jfloat* c4 = env->GetFloatArrayElements(corners4, NULL);
 
       // Create OpenCV matrix from 1D array.
       Mat matImage1(l1, 1, CV_8UC1, (unsigned char *)f1);
@@ -183,10 +178,10 @@ extern "C" {
       cv::Mat target2 = cv::Mat::zeros(width, height, CV_8UC1);
       cv::Mat target3 = cv::Mat::zeros(width, height, CV_8UC1);
       cv::Mat target4 = cv::Mat::zeros(width, height, CV_8UC1);
-      projectiveTransform(reshapedImage1, target1, c0x1, c0y1, c1x1, c1y1, c2x1, c2y1, c3x1, c3y1);
-      projectiveTransform(reshapedImage2, target2, c0x2, c0y2, c1x2, c1y2, c2x2, c2y2, c3x2, c3y2);
-      projectiveTransform(reshapedImage3, target3, c0x3, c0y3, c1x3, c1y3, c2x3, c2y3, c3x3, c3y3);
-      projectiveTransform(reshapedImage4, target4, c0x4, c0y4, c1x4, c1y4, c2x4, c2y4, c3x4, c3y4);
+      projectiveTransform(reshapedImage1, target1, c1);
+      projectiveTransform(reshapedImage2, target2, c2);
+      projectiveTransform(reshapedImage3, target3, c3);
+      projectiveTransform(reshapedImage4, target4, c4);
 
 	  // Find best pair of frames
 	  Scalar m;
@@ -315,6 +310,10 @@ extern "C" {
       env->ReleaseByteArrayElements(frame2, f2, JNI_ABORT);
       env->ReleaseByteArrayElements(frame3, f2, JNI_ABORT);
       env->ReleaseByteArrayElements(frame4, f2, JNI_ABORT);
+      env->ReleaseByteArrayElements(corners1, c1, JNI_ABORT);
+      env->ReleaseByteArrayElements(corners2, c2, JNI_ABORT);
+      env->ReleaseByteArrayElements(corners3, c3, JNI_ABORT);
+      env->ReleaseByteArrayElements(corners4, c4, JNI_ABORT);
 
 	  return message_jboolean;
     }
