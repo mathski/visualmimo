@@ -1,0 +1,25 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.android.visualmimo.MainActivity" >
+    
+    <item android:id="@+id/action_save"
+          android:icon="@drawable/ic_menu_camera"
+          android:title="Save Single"
+          android:showAsAction="ifRoom" />
+    
+    <item android:id="@+id/action_burst"
+        android:title="Toggle Burst"
+        android:showAsAction="never"
+        />
+    
+    <item android:id="@+id/action_idle_fps"
+        android:title="Idle FPS"
+        android:showAsAction="never"
+        />
+    
+    <item android:id="@+id/action_load_fps"
+        android:title="Load FPS"
+        android:showAsAction="never"
+        />
+
+</menu>

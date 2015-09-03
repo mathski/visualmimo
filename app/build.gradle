@@ -1,0 +1,65 @@
+apply plugin: 'com.android.application'
+
+// Android Studio's NDK support doesn't work with static libraries yet.
+// Disabling with this workaround: https://gist.github.com/eleventigers/e112fd76dd95e8e8ff5b
+import org.apache.tools.ant.taskdefs.condition.Os
+def getPlatformNdkBuildCommand() {
+    def rootDir = project.rootDir
+    def localProperties = new File(rootDir, "local.properties")
+    if (localProperties.exists()) {
+        Properties properties = new Properties()
+        localProperties.withInputStream {
+            instr -> properties.load(instr)
+        }
+        def ndkDir = properties.getProperty('ndk.dir')
+        if (ndkDir == null) {
+            throw new GradleException("The ndk.dir property in local.propeties is not set")
+        }
+        def ndkBuild = Os.isFamily(Os.FAMILY_WINDOWS) ? "$ndkDir/ndk-build.cmd" : "$ndkDir/ndk-build"
+        return ndkBuild
+    } else {
+        throw new GradleException("The local.properties file does not exist")
+    }
+}
+
+android {
+    compileSdkVersion 20
+    buildToolsVersion "23.0.0"
+
+    sourceSets.main {
+        jniLibs.srcDir 'src/main/libs'
+        jni.srcDirs = [] //disable automatic ndk-build call
+    }
+
+    defaultConfig {
+        applicationId "com.android.visualmimo"
+        minSdkVersion 16
+        targetSdkVersion 19
+
+        ndk {
+            moduleName "ndk1"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+
+    // Manually call ndk-build to re-compile jni libs
+    task ndk(type: Exec) {
+        environment 'OPENCV_PACKAGE_DIR', '../../../OpenCV-2.4.10-android-sdk'
+        def ndkBuild = getPlatformNdkBuildCommand()
+        commandLine "$ndkBuild", '-j8', '-C', file('src/main/').absolutePath
+    }
+
+    tasks.withType(JavaCompile) {
+        compileTask -> compileTask.dependsOn ndk
+    }
+}
+
+dependencies {
+    compile files('libs/Vuforia.jar')
+}
