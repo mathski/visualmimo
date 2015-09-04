@@ -133,7 +133,7 @@ extern "C" {
 	 * Determines two frames with most differing average intensity.
      * Subtracts frame2 from frame1, overwriting frame1
      */
-    JNIEXPORT jbooleanArray Java_com_android_visualmimo_MainActivity_frameSubtraction(JNIEnv *env, jobject obj,
+    JNIEXPORT jbooleanArray Java_com_android_visualmimo_FrameProcessing_frameSubtraction(JNIEnv *env, jobject obj,
         jbyteArray frame1, jbyteArray frame2, jbyteArray frame3, jbyteArray frame4,
         jint width, jint height,
         jfloat c0x1, jfloat c0y1,

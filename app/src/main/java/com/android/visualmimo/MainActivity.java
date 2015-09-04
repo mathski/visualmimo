@@ -7,28 +7,15 @@ and other countries. Trademarks of QUALCOMM Incorporated are used with permissio
 
 package com.android.visualmimo;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
-
 import android.app.Activity;
-import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Handler.Callback;
-import android.os.Looper;
 import android.os.Message;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.Pair;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -38,23 +25,23 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.CheckBox;
-import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.visualmimo.camera.ImageTargetRenderer;
+import com.android.visualmimo.persistence.FrameCache;
+import com.android.visualmimo.persistence.MIMOFrame;
 import com.qualcomm.vuforia.CameraCalibration;
 import com.qualcomm.vuforia.CameraDevice;
 import com.qualcomm.vuforia.DataSet;
 import com.qualcomm.vuforia.Frame;
 import com.qualcomm.vuforia.Image;
 import com.qualcomm.vuforia.ImageTarget;
-import com.qualcomm.vuforia.ObjectTracker;
 import com.qualcomm.vuforia.Matrix44F;
-import com.qualcomm.vuforia.State;
+import com.qualcomm.vuforia.ObjectTracker;
 import com.qualcomm.vuforia.STORAGE_TYPE;
+import com.qualcomm.vuforia.State;
 import com.qualcomm.vuforia.Tool;
 import com.qualcomm.vuforia.Trackable;
 import com.qualcomm.vuforia.TrackableResult;
@@ -67,10 +54,9 @@ import com.qualcomm.vuforia.samples.SampleApplication.SampleApplicationException
 import com.qualcomm.vuforia.samples.SampleApplication.SampleApplicationSession;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.LoadingDialogHandler;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.SampleApplicationGLView;
-import com.android.visualmimo.R;
-import com.android.visualmimo.camera.ImageTargetRenderer;
-import com.android.visualmimo.persistence.FrameCache;
-import com.android.visualmimo.persistence.MIMOFrame;
+
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 /**
  * Activity that handles everything: Vuforia, UI.
@@ -89,16 +75,6 @@ public class MainActivity extends Activity implements Callback{
 	private boolean burstMode = false;
 	private static final int BURST_SAVES = 100;
 	private double[] accuracies;
-	
-	/** NDK: subtracts frame1 from frame2, overwriting frame1 */
-	private native boolean[] frameSubtraction(byte[] frame1, byte[] frame2, byte[] frame3, byte[] frame4,
-			int width, int height, float c0x1, float c0y1, float c1x1,
-			float c1y1, float c2x1, float c2y1, float c3x1, float c3y1,
-			float c0x2, float c0y2, float c1x2, float c1y2, float c2x2,
-			float c2y2, float c3x2, float c3y2, float c0x3, float c0y3,
-			float c1x3, float c1y3, float c2x3, float c2y3, float c3x3,
-			float c3y3, float c0x4, float c0y4, float c1x4, float c1y4,
-			float c2x4, float c2y4, float c3x4, float c3y4);
 
 	/** The number of images to save when we are recording. */
 	private int NUM_SAVES = 1;
@@ -113,8 +89,6 @@ public class MainActivity extends Activity implements Callback{
 
 	private DataSet mCurrentDataset;
 	private int mCurrentDatasetSelectionIndex = 0;
-	private int mStartDatasetsIndex = 0;
-	private int mDatasetsNumber = 0;
 	private ArrayList<String> mDatasetStrings = new ArrayList<String>();
 
 	// Our OpenGL view:
@@ -125,27 +99,12 @@ public class MainActivity extends Activity implements Callback{
 
 	private GestureDetector mGestureDetector;
 
-	private boolean mSwitchDatasetAsap = false;
-	private boolean mFlash = false;
-	private boolean mContAutofocus = false;
-
-	private View mFlashOptionView;
-
 	private RelativeLayout mUILayout;
 
-	public LoadingDialogHandler loadingDialogHandler = new LoadingDialogHandler(
-			this);
-
-	private FrameLayout layout;
-	private int originalHeight;
-	private int originalWidth;
+	public LoadingDialogHandler loadingDialogHandler = new LoadingDialogHandler(this);
 
 	/** FrameCache to which we add Frames as they come. */
 	private FrameCache cache;
-
-	static {
-		System.loadLibrary("ndk1");
-	}
 
 	// Called when the activity first starts or the user navigates back to an
 	// activity.
@@ -155,8 +114,6 @@ public class MainActivity extends Activity implements Callback{
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.activity_main);
-
-		layout = (FrameLayout) findViewById(R.id.cameraView);
 
 		cache = FrameCache.getInstance();
 
@@ -237,16 +194,6 @@ public class MainActivity extends Activity implements Callback{
 		if (mGlView != null) {
 			mGlView.setVisibility(View.INVISIBLE);
 			mGlView.onPause();
-		}
-
-		// Turn off the flash
-		if (mFlashOptionView != null && mFlash) {
-			// OnCheckedChangeListener is called upon changing the checked state
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-				((Switch) mFlashOptionView).setChecked(false);
-			} else {
-				((CheckBox) mFlashOptionView).setChecked(false);
-			}
 		}
 
 		try {
@@ -404,10 +351,8 @@ public class MainActivity extends Activity implements Callback{
 			boolean result = CameraDevice.getInstance().setFocusMode(
 					CameraDevice.FOCUS_MODE.FOCUS_MODE_CONTINUOUSAUTO);
 
-			if (result)
-				mContAutofocus = true;
-			else
-				Log.e(LOGTAG, "Unable to enable continuous autofocus");
+			if (!result)
+                Log.e(LOGTAG, "Unable to enable continuous autofocus");
 		} else {
 			Log.e(LOGTAG, exception.getString());
 			finish();
@@ -514,96 +459,21 @@ public class MainActivity extends Activity implements Callback{
 				}
 				saveCount++;
 				if (benchingInProgress || saveCount <= NUM_SAVES) {
-					// this handler will update the UI with the message below
-					final Handler handler = new Handler(this);
-					
-					final int index = saveCount;
-					
-					final List<MIMOFrame> frames = cache.getBufferFrames();
-					
-					// this thread will extract the message
-					new Thread(new Runnable() {
-						public void run() {
-							// perform operations in NDK
-							
-
-							// NDK call: handles subtraction and saving
-							boolean[] message = frameSubtraction(
-									frames.get(0).getRaw(),
-									frames.get(1).getRaw(),
-									frames.get(2).getRaw(),
-									frames.get(3).getRaw(),
-									imageWidth,
-									imageHeight,
-									frames.get(0).getCorners()[0][0], frames.get(0).getCorners()[0][1],
-									frames.get(0).getCorners()[1][0], frames.get(0).getCorners()[1][1],
-									frames.get(0).getCorners()[2][0], frames.get(0).getCorners()[2][1],
-									frames.get(0).getCorners()[3][0], frames.get(0).getCorners()[3][1],
-									frames.get(1).getCorners()[0][0], frames.get(1).getCorners()[0][1],
-									frames.get(1).getCorners()[1][0], frames.get(1).getCorners()[1][1],
-									frames.get(1).getCorners()[2][0], frames.get(1).getCorners()[2][1],
-									frames.get(1).getCorners()[3][0], frames.get(1).getCorners()[3][1],
-									frames.get(2).getCorners()[0][0], frames.get(2).getCorners()[0][1],
-									frames.get(2).getCorners()[1][0], frames.get(2).getCorners()[1][1],
-									frames.get(2).getCorners()[2][0], frames.get(2).getCorners()[2][1],
-									frames.get(2).getCorners()[3][0], frames.get(2).getCorners()[3][1],
-									frames.get(3).getCorners()[0][0], frames.get(3).getCorners()[0][1],
-									frames.get(3).getCorners()[1][0], frames.get(3).getCorners()[1][1],
-									frames.get(3).getCorners()[2][0], frames.get(3).getCorners()[2][1],
-									frames.get(3).getCorners()[3][0], frames.get(3).getCorners()[3][1]);
-
-							MessageUtils.printGrid(message, System.out);
-							MessageUtils.printArray(message, System.out);
-							
-							String ascii = MessageUtils.parseMessage(message);
-							double accuracy = MessageUtils.checkAccuracy(message);
-							System.out.println(ascii);
-							System.out.println(accuracy);
-							
-							// update UI
-							if (!benchingInProgress) {
-								if (burstMode) {
-									if (index < NUM_SAVES) {
-										accuracies[index - 1] = accuracy;
-									}
-									
-									if (index == NUM_SAVES) {
-										double average = 0;
-										for (double a : accuracies) {
-											average += a;
-										}
-										average /= accuracies.length;
-										
-										Message msg = new Message();
-										msg.obj = "Average accuracy: " + average;
-										handler.sendMessage(msg);
-									}
-								} else {
-									Message msg = new Message();
-									msg.obj = accuracy + ": " + ascii;
-									handler.sendMessage(msg);
-								}
-							}
-						}
-					}).start();
+					FrameProcessing.processFrames(
+                            cache,
+                            this,
+                            saveCount,
+                            benchingInProgress,
+                            burstMode,
+                            NUM_SAVES,
+                            imageWidth,
+                            imageHeight,
+                            accuracies);
 				} else {
 					recordingMode = false;
 				}
 			}
 
-			if (mSwitchDatasetAsap) {
-				mSwitchDatasetAsap = false;
-				TrackerManager tm = TrackerManager.getInstance();
-				ObjectTracker it = (ObjectTracker) tm.getTracker(ObjectTracker.getClassType());
-				if (it == null || mCurrentDataset == null
-						|| it.getActiveDataSet() == null) {
-					Log.d(LOGTAG, "Failed to swap datasets");
-					return;
-				}
-
-				doUnloadTrackersData();
-				doLoadTrackersData();
-			}
 		}
 	}
 
