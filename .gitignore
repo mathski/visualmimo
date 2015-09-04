@@ -61,3 +61,7 @@ proguard/
 
 # NDK file that holds absolute filepaths
 obj/local/armeabi/objs/ndk1/native.o.d
+
+app/src/main/obj/
+app/src/main/libs/armeabi-v7a/libndk1.so
+
