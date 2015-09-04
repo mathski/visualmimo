@@ -51,7 +51,7 @@ import com.qualcomm.vuforia.DataSet;
 import com.qualcomm.vuforia.Frame;
 import com.qualcomm.vuforia.Image;
 import com.qualcomm.vuforia.ImageTarget;
-import com.qualcomm.vuforia.ImageTracker;
+import com.qualcomm.vuforia.ObjectTracker;
 import com.qualcomm.vuforia.Matrix44F;
 import com.qualcomm.vuforia.State;
 import com.qualcomm.vuforia.STORAGE_TYPE;
@@ -319,8 +319,8 @@ public class MainActivity extends Activity implements Callback{
 
 	public boolean doLoadTrackersData() {
 		TrackerManager tManager = TrackerManager.getInstance();
-		ImageTracker imageTracker = (ImageTracker) tManager
-				.getTracker(ImageTracker.getClassType());
+		ObjectTracker imageTracker = (ObjectTracker) tManager
+				.getTracker(ObjectTracker.getClassType());
 		if (imageTracker == null)
 			return false;
 
@@ -356,8 +356,8 @@ public class MainActivity extends Activity implements Callback{
 		boolean result = true;
 
 		TrackerManager tManager = TrackerManager.getInstance();
-		ImageTracker imageTracker = (ImageTracker) tManager
-				.getTracker(ImageTracker.getClassType());
+		ObjectTracker imageTracker = (ObjectTracker) tManager
+				.getTracker(ObjectTracker.getClassType());
 		if (imageTracker == null)
 			return false;
 
@@ -430,7 +430,7 @@ public class MainActivity extends Activity implements Callback{
 			// adapted from
 			// https://developer.vuforia.com/forum/android/get-trackable-angle
 			ImageTarget imageTarget = (ImageTarget) trackable;
-			Vec2F targetSize = imageTarget.getSize();
+			Vec3F targetSize = imageTarget.getSize();
 
 			float halfWidth = targetSize.getData()[0] / 2.0f;
 			float halfHeight = targetSize.getData()[1] / 2.0f;
@@ -594,8 +594,7 @@ public class MainActivity extends Activity implements Callback{
 			if (mSwitchDatasetAsap) {
 				mSwitchDatasetAsap = false;
 				TrackerManager tm = TrackerManager.getInstance();
-				ImageTracker it = (ImageTracker) tm.getTracker(ImageTracker
-						.getClassType());
+				ObjectTracker it = (ObjectTracker) tm.getTracker(ObjectTracker.getClassType());
 				if (it == null || mCurrentDataset == null
 						|| it.getActiveDataSet() == null) {
 					Log.d(LOGTAG, "Failed to swap datasets");
@@ -616,7 +615,7 @@ public class MainActivity extends Activity implements Callback{
 		Tracker tracker;
 
 		// Trying to initialize the image tracker
-		tracker = tManager.initTracker(ImageTracker.getClassType());
+		tracker = tManager.initTracker(ObjectTracker.getClassType());
 		if (tracker == null) {
 			Log.e(LOGTAG,
 					"Tracker not initialized. Tracker already initialized or the camera is already started");
@@ -631,8 +630,7 @@ public class MainActivity extends Activity implements Callback{
 		// Indicate if the trackers were started correctly
 		boolean result = true;
 
-		Tracker imageTracker = TrackerManager.getInstance().getTracker(
-				ImageTracker.getClassType());
+		Tracker imageTracker = TrackerManager.getInstance().getTracker(ObjectTracker.getClassType());
 		if (imageTracker != null)
 			imageTracker.start();
 
@@ -643,8 +641,7 @@ public class MainActivity extends Activity implements Callback{
 		// Indicate if the trackers were stopped correctly
 		boolean result = true;
 
-		Tracker imageTracker = TrackerManager.getInstance().getTracker(
-				ImageTracker.getClassType());
+		Tracker imageTracker = TrackerManager.getInstance().getTracker(ObjectTracker.getClassType());
 		if (imageTracker != null)
 			imageTracker.stop();
 
@@ -656,7 +653,7 @@ public class MainActivity extends Activity implements Callback{
 		boolean result = true;
 
 		TrackerManager tManager = TrackerManager.getInstance();
-		tManager.deinitTracker(ImageTracker.getClassType());
+		tManager.deinitTracker(ObjectTracker.getClassType());
 
 		return result;
 	}

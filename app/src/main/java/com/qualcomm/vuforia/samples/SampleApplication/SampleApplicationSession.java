@@ -16,10 +16,11 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.WindowManager;
 
+import com.android.visualmimo.MainActivity;
+import com.android.visualmimo.persistence.MIMOFrame;
 import com.qualcomm.vuforia.CameraCalibration;
 import com.qualcomm.vuforia.CameraDevice;
 import com.qualcomm.vuforia.Matrix44F;
-import com.qualcomm.vuforia.PIXEL_FORMAT;
 import com.qualcomm.vuforia.Renderer;
 import com.qualcomm.vuforia.State;
 import com.qualcomm.vuforia.Tool;
@@ -28,8 +29,6 @@ import com.qualcomm.vuforia.VideoBackgroundConfig;
 import com.qualcomm.vuforia.VideoMode;
 import com.qualcomm.vuforia.Vuforia;
 import com.qualcomm.vuforia.Vuforia.UpdateCallbackInterface;
-import com.android.visualmimo.MainActivity;
-import com.android.visualmimo.persistence.MIMOFrame;
 
 /**
  * This file is straight from the Vuforia samples, handles stuff behing the scenes.
@@ -350,7 +349,8 @@ public class SampleApplicationSession implements UpdateCallbackInterface
             // Prevent the onDestroy() method to overlap with initialization:
             synchronized (mShutdownLock)
             {
-                Vuforia.setInitParameters(mActivity, mVuforiaFlags);
+                // Security?
+                Vuforia.setInitParameters(mActivity, mVuforiaFlags, "AdbD213/////AAAAAUZeX2UcFUEtipsr8m0qIBM1Ap4yx6SzVqV4UqoBzJ5iSboEW5dbY/3uH2ffUlfF4DzM10jLbQXx7ndgMToiK+VaSyGGdoaMmvkPyUvSf76+wV8C0gNzw74JpcpWkzS/If3pr8z84yo6CZqf5Rw5052BNUqkIw7hkhiRV2ZFmvZTAnGly7h38TzWaqPp2SqlJP5Ebbg6faLzspoLW6UcH3A6o2XUeSKvudBvrdhvWcQrKf+J1ZQq5Zv8BTQgszbavRtLetnPKulrPY+arhFNHlpeisjYi3Vt2nm4dX1kMjjST09guIiqfIXHR14+q7nJBBtWUDzGuJm1KDEqewbUq5RataKFvzfphWJYdG+18Xvq");
                 
                 do
                 {
@@ -572,8 +572,8 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         
         return result;
     }
-    
-    
+
+
     // Configures the video mode and sets offsets for the camera's image
     private void configureVideoBackground()
     {
@@ -582,7 +582,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         
         VideoBackgroundConfig config = new VideoBackgroundConfig();
         config.setEnabled(true);
-        config.setSynchronous(true);
+//        config.setSynchronous(true);
         config.setPosition(new Vec2I(0, 0));
         
         int xSize = 0, ySize = 0;
