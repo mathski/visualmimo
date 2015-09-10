@@ -1,4 +1,4 @@
-function [ message ] = randomMessageSample()
+function [ message ] = randomMessageSample(imageId, message)
 
 numFrames=10000;
 fps = 2;
@@ -10,7 +10,9 @@ width = 560;
 % height = 896;
 % width = 1120;
 
-[img, cmap] = imread('5','jpeg');
+if ~exist('imageId', 'var'), imageId = '5'; end
+[img, cmap] = imread(imageId,'jpeg');
+
 %[height,width,~]=size(img);
 img=imresize(img, [height width]);
 
@@ -22,7 +24,15 @@ img = rgb2hsv(img);
 img=hsv2rgb(img);
 % img=uint8(img*255);
 
-messages = {'abcdefghijk'; 'lmnopqrstuv'};
+
+if exist('message', 'var')
+    messages = {message};
+else
+    messages = {'abcdefghijk'};
+end
+
+% messages = {'abcdefghijk'; 'lmnopqrstuv'};
+
 frames = [];
 for i = 1:length(messages);
     message = asciiMessage(messages{i}, 80, i-1);
