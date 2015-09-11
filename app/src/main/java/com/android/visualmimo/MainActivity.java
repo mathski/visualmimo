@@ -32,6 +32,12 @@ import android.widget.Toast;
 import com.android.visualmimo.camera.ImageTargetRenderer;
 import com.android.visualmimo.persistence.FrameCache;
 import com.android.visualmimo.persistence.MIMOFrame;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.qualcomm.vuforia.CameraCalibration;
 import com.qualcomm.vuforia.CameraDevice;
 import com.qualcomm.vuforia.DataSet;
@@ -80,6 +86,7 @@ public class MainActivity extends Activity implements Callback{
 	private int NUM_SAVES = 1;
 	private int saveCount = 0;
 	private boolean recordingMode = false;
+	private boolean photoalbumMode = false;
 	private static final String savePath = "/sdcard/vmimo/";
 	private String saveDir;
 
@@ -102,6 +109,8 @@ public class MainActivity extends Activity implements Callback{
 	private RelativeLayout mUILayout;
 
 	public LoadingDialogHandler loadingDialogHandler = new LoadingDialogHandler(this);
+
+	private RequestQueue queue;
 
 	/** FrameCache to which we add Frames as they come. */
 	private FrameCache cache;
@@ -128,6 +137,8 @@ public class MainActivity extends Activity implements Callback{
 				.initAR(this, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
 		mGestureDetector = new GestureDetector(this, new GestureListener());
+
+		queue = Volley.newRequestQueue(this);
 	}
 
 	/** GestureListener for tap to focus. */
@@ -570,45 +581,54 @@ public class MainActivity extends Activity implements Callback{
 		saveCount = 0;
 	}
 
+	private void handleDemoButton() {
+		photoalbumMode = true;
+		handleSaveButton();
+	}
+
 
 	/** Handles ActionBar presses. */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle presses on the action bar items
 		switch (item.getItemId()) {
-		case R.id.action_save:
+			case R.id.action_save:
 
-			handleSaveButton();
+				handleSaveButton();
 
-			return true;
-			
-		case R.id.action_burst:
-			if (burstMode) {
-				showToast("Disabling Burst Mode");
-				NUM_SAVES = 1;
-				burstMode = false;
-			}
-			else {
-				showToast("Enabling Burst Mode (" + BURST_SAVES + ")");
-				NUM_SAVES = BURST_SAVES;
-				burstMode = true;
-			}
-			return true;
-			
-		case R.id.action_idle_fps:
-			idleBenchMode = true;
-			benchingInProgress = true;
-			frameCount = -1;
-			return true;
-			
-		case R.id.action_load_fps:
-			idleBenchMode = false;
-			benchingInProgress = true;
-			frameCount = -1;
-			return true;
-			
-		default:
-			return super.onOptionsItemSelected(item);
+				return true;
+
+			case R.id.action_album:
+				handleDemoButton();
+				return true;
+
+			case R.id.action_burst:
+				if (burstMode) {
+					showToast("Disabling Burst Mode");
+					NUM_SAVES = 1;
+					burstMode = false;
+				}
+				else {
+					showToast("Enabling Burst Mode (" + BURST_SAVES + ")");
+					NUM_SAVES = BURST_SAVES;
+					burstMode = true;
+				}
+				return true;
+
+			case R.id.action_idle_fps:
+				idleBenchMode = true;
+				benchingInProgress = true;
+				frameCount = -1;
+				return true;
+
+			case R.id.action_load_fps:
+				idleBenchMode = false;
+				benchingInProgress = true;
+				frameCount = -1;
+				return true;
+
+			default:
+				return super.onOptionsItemSelected(item);
 		}
 	}
 	
@@ -645,12 +665,34 @@ public class MainActivity extends Activity implements Callback{
 	/** Updates message display */
 	@Override
 	public boolean handleMessage(Message msg) {
-		
-		String ascii = (String) msg.obj;
-		showToast(ascii);
+		ExtractedMessage extracted = (ExtractedMessage) msg.obj;
+
+		showToast(extracted.toString());
+
+		if (photoalbumMode) {
+			photoalbumMode = false;
+
+			String url = "http://f1436e6.ngrok.com/change/" + extracted.binary;
+			queue.add(
+					new StringRequest(
+							Request.Method.GET,
+							url,
+							new Response.Listener<String>() {
+								@Override
+								public void onResponse(String response) {
+									showToast(response);
+								}
+							}, new Response.ErrorListener() {
+						@Override
+						public void onErrorResponse(VolleyError error) {
+							showToast(error.getMessage());
+							System.err.println(error.getMessage());
+						}
+					}));
+		}
 		
 		//TODO: fix (doesn't do anything)
-		((TextView) findViewById(R.id.decoded_data)).setText("foo" + ascii);
+		((TextView) findViewById(R.id.decoded_data)).setText("foo" + extracted.message);
 		
 		return true;
 	}

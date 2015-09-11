@@ -1,7 +1,7 @@
 function [ message ] = randomMessageSample(imageId, message)
 
 numFrames=10000;
-fps = 2;
+fps = 10;
 alpha = 20;
 
 height = 448;

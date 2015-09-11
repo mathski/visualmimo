@@ -39,7 +39,7 @@ public class MessageUtils {
 	
 	/**
 	 * Extracts an ASCII message from the pattern.
-	 * @param message
+	 * @param pattern
 	 * @return
 	 */
 	public static String parseMessage(boolean[] pattern) {
@@ -60,6 +60,26 @@ public class MessageUtils {
 		}
 		
 		return messageBuffer.toString();
+	}
+
+	/**
+	 * Extracts binary string from the pattern.
+	 * @param pattern
+	 * @return
+	 */
+	public static String parseMessageToBinary(boolean[] pattern) {
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < 8; i++) {
+			for (int j = 9; j >= 0; j--) {
+				boolean b = pattern[i * 10 + j];
+				if(b)
+					sb.append("0");
+				else
+					sb.append("1");
+			}
+		}
+
+		return sb.toString();
 	}
 	
 	public static double checkAccuracy(boolean[] pattern) {

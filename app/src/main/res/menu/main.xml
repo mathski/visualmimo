@@ -6,6 +6,12 @@
           android:icon="@drawable/ic_menu_camera"
           android:title="Save Single"
           android:showAsAction="ifRoom" />
+
+    <item android:id="@+id/action_album"
+          android:icon="@android:drawable/picture_frame"
+          android:title="Photo Album Demo"
+          android:showAsAction="ifRoom"
+        />
     
     <item android:id="@+id/action_burst"
         android:title="Toggle Burst"

@@ -2,6 +2,7 @@ package com.android.visualmimo;
 
 import android.os.Handler;
 import android.os.Message;
+import android.util.Pair;
 
 import com.android.visualmimo.persistence.FrameCache;
 import com.android.visualmimo.persistence.MIMOFrame;
@@ -99,12 +100,12 @@ public class FrameProcessing {
                             average /= accuracies.length;
 
                             Message msg = new Message();
-                            msg.obj = "Average accuracy: " + average;
+                            msg.obj = new ExtractedMessage(average, "average", message);
                             handler.sendMessage(msg);
                         }
                     } else {
                         Message msg = new Message();
-                        msg.obj = accuracy + ": " + ascii;
+                        msg.obj = new ExtractedMessage(accuracy, ascii, message);
                         handler.sendMessage(msg);
                     }
                 }
