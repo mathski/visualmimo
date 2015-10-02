@@ -2,7 +2,7 @@ function [ message ] = randomMessageSample(imageId, message)
 
 numFrames=10000;
 fps = 10;
-alpha = 20;
+alpha = 10;
 
 height = 448;
 width = 560;
@@ -48,12 +48,16 @@ for i = 1:length(messages);
     frames = [frames im2frame(img1,cmap)];
     frames = [frames im2frame(img2,cmap)];
 end
-h = gcf;
-loc = [0,-30,0,0];
 
-%saveAVI(frames);
-movie(h,frames,numFrames,fps,loc);
+frames = repmat(frames, 1, 100);
 
-%movie2avi(frames, 'checkerboardStones.avi', 'FPS', fps, 'compression', 'none', 'KEYFRAME', 1);
+v = VideoWriter('vmimo.avi');
+v.Quality = 100;
+v.FrameRate = fps;
+open(v);
+writeVideo(v, frames);
+close(v);
+
+% use mplayer -loop 0 vmimo.avi
 
 end
