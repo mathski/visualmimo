@@ -1,7 +1,4 @@
-#include <jni.h>
-#include <android/log.h>
 #include <stdlib.h>
-
 #include <cv.h>
 #include <highgui.h>
 
@@ -43,10 +40,10 @@ void sortCorners(std::vector<cv::Point2f>& corners, cv::Point2f center)
  * image to known ratio.
  */
 void projectiveTransform(Mat &image, Mat &dest,
-                         jfloat c0x, jfloat c0y,
-                         jfloat c1x, jfloat c1y,
-                         jfloat c2x, jfloat c2y,
-                         jfloat c3x, jfloat c3y) {
+                         float c0x, float c0y,
+                         float c1x, float c1y,
+                         float c2x, float c2y,
+                         float c3x, float c3y) {
 
     //perspective transform
     std::vector<Point2f> corners;
@@ -86,7 +83,7 @@ void histogramEqualization(Mat &image) {
     // Convert from BGR to YCbCr, because we need intensity as its own channel
     cv::cvtColor(image, image, CV_BGR2YCrCb);
 
-    vector<Mat> channels;
+    std::vector<Mat> channels;
     split(image, channels);
 
     cv::equalizeHist(channels[0], channels[0]);
