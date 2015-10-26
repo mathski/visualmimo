@@ -1,14 +1,16 @@
-function [ message ] = randomMessageSample(imageId, message)
+function [ message ] = sample(imageId, message)
+% Sample main function that encodes a message as a checkerboard, applies it
+% to an image, and writes the result to file.
+% imageId: optional string corresponding to one of the images in `images/`.
+%          defaults to '5'.
+% message: optional string giving message to embed
+%          defaults to 'abcdefghijk'
 
-numFrames=10000;
-fps = 10;
 alpha = 10;
+fps = 10;
 
 height = 448;
 width = 560;
-
-% height = 896;
-% width = 1120;
 
 if ~exist('imageId', 'var'), imageId = '5'; end
 [img, cmap] = imread(fullfile('images', imageId),'jpeg');
@@ -19,7 +21,7 @@ img=imresize(img, [height width]);
 % HSV conversion
 img = rgb2hsv(img);
 % Histogram Equalize Intensity Channel
-% img(:,:,3) = histeq(img(:,:,3), 256);
+img(:,:,3) = histeq(img(:,:,3), 256);
 % RGB conversion
 img=hsv2rgb(img);
 % img=uint8(img*255);
@@ -37,6 +39,7 @@ frames = [];
 for i = 1:length(messages);
     message = asciiMessage(messages{i}, 80, i-1);
     
+    % sync_bit for in-progress multiframe implementation
     sync_bit = mod(i, 2);
     if sync_bit == 0;
         sync_bit = -1;
@@ -49,15 +52,6 @@ for i = 1:length(messages);
     frames = [frames im2frame(img2,cmap)];
 end
 
-frames = repmat(frames, 1, 100);
-
-v = VideoWriter('vmimo.avi');
-v.Quality = 100;
-v.FrameRate = fps;
-open(v);
-writeVideo(v, frames);
-close(v);
-
-% use mplayer -loop 0 vmimo.avi
+writeFrames(frames, 'vmimo.avi', 10);
 
 end

@@ -10,7 +10,7 @@ An Android implementation of visible light communication. [See report here.](htt
 
 ## Setup - MATLAB
 
-- Run `randomMessageSample.m` to generate `vmimo.avi`. It's short so run it looping: `mplayer -loop 0 vmimo.avi`.
+- Run `sample.m` to generate `vmimo.avi`. It's short so run it looping: `mplayer -loop 0 vmimo.avi`.
 
 ## NDK Code
 C++ code is in `app/src/main/jni/`. The CV logic is in `image_processing.cpp`, with the NDK abstracted out. `native.cpp` connects `image_processing.cpp` to the Android code, and `simulator.cpp` allows developing CV algorithms without any Android by simulating the flow of images and corners from the Android code.

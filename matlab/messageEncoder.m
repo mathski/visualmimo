@@ -1,13 +1,20 @@
 function [ checkerboard ] = messageEncoder( kappa, imheight, imwidth, heightnum, widthnum, message, invert, sync_bit, varargin)
-%% Encodes 1D bit array
+% Encodes 1D bit array into a checkerboard pattern.
+% kappa: intensity for 1's
+% heightnum/widthnum: number of blocks in height and width
+% message: binary string
+% invert: if true, will produce an inverted image
+% sync_bit: bit to be added at the end in the sync region, ignores invert
+
 checkerboard = [imheight,imwidth];
 
+% always blur since the accuracy loss is minimal
 blur_flag = 1;
 
 heightstep = floor(imheight/heightnum);
 widthstep = floor(imwidth/widthnum);
 
-mask = MessageBlending(imwidth/widthnum);
+mask = createBlendingMask(imwidth/widthnum);
 
 if invert == 1;
     invert = -1;
@@ -32,7 +39,8 @@ for i = 0:(heightnum-1);
 end
 
 % if we're blurring, we'll iterate through the pattern we just generated
-% and generate a second blurred image
+% and generate a second blurred image, where each pixel depends on value of
+% all neighbor pixels and corresponding value in mask.
 if blur_flag,
 blurred = [imheight,imwidth];
 for i = 0:(heightnum-1);
@@ -111,7 +119,7 @@ end
 
 function [bit] = getMessageAtPos(message, i, j, heightnum, widthnum, sync_bit, invert)
 % Returns the message bit at position i, j, inverted if appropriate,
-% sign_bit if last bit.
+% sign_bit if last bit (ignores invert for the sign bits)
     bit = message(i * widthnum + j + 1) * invert;
     
     if heightnum == i + 1 && widthnum == j + 1;

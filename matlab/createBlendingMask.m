@@ -1,4 +1,8 @@
-function [finalmask] = MessageBlending(blocksize)
+function [finalmask] = createBlendingMask(blocksize)
+% Produces a blending mask.
+% A message at pixel i,j is the weighted sum of the messages of 9 blocks (itself and
+% all its neighbors). The 9 masks give the weights of each of the message
+% blocks for every pixel. 
 
 nblock = 3; % Don't change this
 repeatsize = 5; % increases blurring between borders
@@ -33,24 +37,12 @@ mask(7,:,:) = [ zblock zblock zblock; zblock zblock zblock; oblock zblock zblock
 mask(8,:,:) = [ zblock zblock zblock; zblock zblock zblock; zblock oblock zblock];
 mask(9,:,:) = [ zblock zblock zblock; zblock zblock zblock; zblock zblock oblock];
 
-% % check it
-% for i = 1:9,
-% currentmask = reshape(mask(i,:,:),nblock*blocksize,nblock*blocksize); figure(1);imagesc(currentmask);pause;
-% end;
-
 % Blurring
 for i = 1:9,
     currentmask = reshape(mask(i,:,:),nblock*blocksize,nblock*blocksize); 
     currentmask = conv2(currentmask,blurfilt,'same');
     mask(i,:,:) = currentmask;
 end;
-
-% % check it
-% for i = 1:9,
-%     currentmask = reshape(mask(i,:,:),nblock*blocksize,nblock*blocksize); figure(1);imagesc(currentmask);pause;
-% end;
-
-
 
  % The 9 masks encode the weight for each pixel ... normalize to that the
  % 9x1 vector per pixel as defined by the mask sums to 1
@@ -72,14 +64,6 @@ for ii = 1:9,
 end;
 
 
-
-% % check it
-% for i = 1:9,
-% currentmask = reshape(mask(i,:,:),nblock*blocksize,nblock*blocksize); figure(1);imagesc(currentmask);pause;
-% end;
-
-
-
 % Mask 1 defines the weights for upper left neighbor ...
 %
 %
@@ -88,21 +72,6 @@ end;
 % At this point we only need the weights in the center of the mask. 
 % so crop off the rest
 finalmask = mask(:,(blocksize+1):2*blocksize,(blocksize+1):2*blocksize);
-
-% % check it
-% for i = 1:9,
-% currentmask = reshape(finalmask(i,:,:),blocksize,blocksize); figure(1);imagesc(currentmask);pause;
-% end;
-
-
-
-
-
-% Now this is how you use the weights.
-% A message at pixel i,j is the weighted sum of the messages of 9 blocks (itself and
-% all its neighbors). The 9 masks give the weights of each of the message
-% blocks for every pixel. 
-
 end
 
 
