@@ -11,7 +11,7 @@ width = 560;
 % width = 1120;
 
 if ~exist('imageId', 'var'), imageId = '5'; end
-[img, cmap] = imread(imageId,'jpeg');
+[img, cmap] = imread(fullfile('images', imageId),'jpeg');
 
 %[height,width,~]=size(img);
 img=imresize(img, [height width]);
