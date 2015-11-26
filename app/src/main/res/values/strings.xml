@@ -5,5 +5,8 @@
     <string name="app_name">VisualMimo</string>
     <string name="switch_views">Switch View</string>
     <color name="displayColor">#f00</color>
+    <string name="title_activity_whiteboard">Whiteboard</string>
+
+    <string name="hello_world">Hello world!</string>
 
 </resources>

@@ -8,6 +8,7 @@ and other countries. Trademarks of QUALCOMM Incorporated are used with permissio
 package com.android.visualmimo;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -25,6 +26,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -86,7 +88,7 @@ public class MainActivity extends Activity implements Callback{
 	private int NUM_SAVES = 1;
 	private int saveCount = 0;
 	private boolean recordingMode = false;
-	private boolean photoalbumMode = false;
+	private boolean photoalbumMode = false, whiteboardDemo = false;
 	private static final String savePath = "/sdcard/vmimo/";
 	private String saveDir;
 
@@ -132,7 +134,6 @@ public class MainActivity extends Activity implements Callback{
 		mDatasetStrings.add("VMIMO.xml");
 //		mDatasetStrings.add("StonesAndChips.xml");
 		
-
 		vuforiaAppSession
 				.initAR(this, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
@@ -573,12 +574,12 @@ public class MainActivity extends Activity implements Callback{
 
 			}
 		}, 1000);
-
-		// save to folder of current system time
-		// saveDir = "" + System.currentTimeMillis();
-		// new File(savePath + saveDir).mkdirs();
-
 		saveCount = 0;
+	}
+
+	private void handleWhiteboardButton(){
+		whiteboardDemo = true;
+		handleSaveButton();
 	}
 
 	private void handleDemoButton() {
@@ -593,15 +594,14 @@ public class MainActivity extends Activity implements Callback{
 		// Handle presses on the action bar items
 		switch (item.getItemId()) {
 			case R.id.action_save:
-
 				handleSaveButton();
-
 				return true;
-
+			case R.id.action_whiteboard:
+				handleWhiteboardButton();
+				return true;
 			case R.id.action_album:
 				handleDemoButton();
 				return true;
-
 			case R.id.action_burst:
 				if (burstMode) {
 					showToast("Disabling Burst Mode");
@@ -667,8 +667,37 @@ public class MainActivity extends Activity implements Callback{
 	public boolean handleMessage(Message msg) {
 		ExtractedMessage extracted = (ExtractedMessage) msg.obj;
 
-		showToast(extracted.toString());
+		if(whiteboardDemo) {
+			queue.add(
+					new StringRequest(
+							Request.Method.GET,
+							"http://playground.charredsoftware.com/whiteboard.php?id=" + extracted.message,
+							new Response.Listener<String>() {
+								@Override
+								public void onResponse(String response) {
+									if (!response.equalsIgnoreCase("null")) {
+										try {
+											vuforiaAppSession.stopAR();
+										} catch (Exception e) {
+											e.printStackTrace();
+										}
+										showToast("Found ID " + response);
+										Intent intent = new Intent(getApplicationContext(), Whiteboard.class);
+										intent.putExtra("id", response);
+										startActivity(intent);
+									} else showToast(response);
+								}
+							}, new Response.ErrorListener() {
+						@Override
+						public void onErrorResponse(VolleyError error) {
+							showToast(error.getMessage());
+							System.err.println(error.getMessage());
+						}
+					}));
+			return false;
+		}
 
+		showToast(extracted.toString());
 		if (photoalbumMode) {
 			photoalbumMode = false;
 
@@ -693,7 +722,7 @@ public class MainActivity extends Activity implements Callback{
 		
 		//TODO: fix (doesn't do anything)
 		((TextView) findViewById(R.id.decoded_data)).setText("foo" + extracted.message);
-		
+
 		return true;
 	}
 }
