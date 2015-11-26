@@ -89,8 +89,6 @@ public class MainActivity extends Activity implements Callback{
 	private int saveCount = 0;
 	private boolean recordingMode = false;
 	private boolean photoalbumMode = false, whiteboardDemo = false;
-	private static final String savePath = "/sdcard/vmimo/";
-	private String saveDir;
 
 	private static final String LOGTAG = "ImageTargets";
 
@@ -132,8 +130,7 @@ public class MainActivity extends Activity implements Callback{
 
 		startLoadingAnimation();
 		mDatasetStrings.add("VMIMO.xml");
-//		mDatasetStrings.add("StonesAndChips.xml");
-		
+
 		vuforiaAppSession
 				.initAR(this, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
@@ -213,7 +210,6 @@ public class MainActivity extends Activity implements Callback{
 		} catch (SampleApplicationException e) {
 			Log.e(LOGTAG, e.getString());
 		}
-//		processor.stopProcessing();
 	}
 
 	@Override
@@ -410,28 +406,6 @@ public class MainActivity extends Activity implements Callback{
 			corners[2] = v3.getData();
 			corners[3] = v4.getData();
 
-			// Query display dimensions:
-//			DisplayMetrics metrics = new DisplayMetrics();
-//			getWindowManager().getDefaultDisplay().getMetrics(metrics);
-			// int screenWidth = metrics.widthPixels;
-			// int screenHeight = metrics.heightPixels;
-			//
-			// v1 = MatrixUtils.cameraPointToScreenPoint(v1, screenWidth,
-			// screenHeight);
-			// v2 = MatrixUtils.cameraPointToScreenPoint(v2, screenWidth,
-			// screenHeight);
-			// v3 = MatrixUtils.cameraPointToScreenPoint(v3, screenWidth,
-			// screenHeight);
-			// v4 = MatrixUtils.cameraPointToScreenPoint(v4, screenWidth,
-			// screenHeight);
-
-//			float[] poseMatrix = result.getPose().getData();
-			// Log.d(LOGTAG, "Pose:");
-			// MatrixUtils.printFloatArray(poseMatrix);
-
-			// Log.d(LOGTAG, "modelViewMatrix:");
-			// MatrixUtils.printFloatArray(modelViewMatrix);
-
 			Frame frame = state.getFrame();
 			Image image = null;
 
@@ -545,26 +519,6 @@ public class MainActivity extends Activity implements Callback{
 		return mGestureDetector.onTouchEvent(event);
 	}
 
-	final public static int CMD_BACK = -1;
-	final public static int CMD_EXTENDED_TRACKING = 1;
-	final public static int CMD_AUTOFOCUS = 2;
-	final public static int CMD_FLASH = 3;
-	final public static int CMD_CAMERA_FRONT = 4;
-	final public static int CMD_CAMERA_REAR = 5;
-	final public static int CMD_DATASET_START_INDEX = 6;
-
-	// public void getViewSize() {
-	// originalHeight = cameraView.getLayoutParams().height;
-	// originalWidth = cameraView.getLayoutParams().width;
-	// }
-
-
-	// public void cameraViewSize(int width, int height) {
-	// cameraView.getLayoutParams().height = height;
-	// cameraView.getLayoutParams().width = width;
-	// cameraView.requestLayout();
-	// }
-	
 	private void handleSaveButton() {
 		// enable recording mode after delay
 		new Handler().postDelayed(new Runnable() {
