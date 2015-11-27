@@ -59,6 +59,8 @@ public class Whiteboard extends Activity {
         Point size = new Point();
         getWindowManager().getDefaultDisplay().getSize(size);
 
+        if(!getIntent().getStringExtra("id").equals("15")) return;
+
         Drawable d = getResources().getDrawable(R.drawable.fifteen);
         d.setBounds(0, 0, size.x, size.y);
 
@@ -105,7 +107,6 @@ public class Whiteboard extends Activity {
                         try {
                             socket.emit("vmimo", new JSONObject(board.currentPath.toString()));
                         }catch(Exception e){e.printStackTrace();}
-                        board.paths.add(board.currentPath);
                         board.currentPath = new Path(new ArrayList<Coordinate>(Arrays.asList(board.currentPath.coordinates.get(board.currentPath.coordinates.size() - 1))));
                     }
                     draw();
@@ -136,7 +137,13 @@ public class Whiteboard extends Activity {
                     if(args[0] instanceof JSONObject) data = (JSONObject) args[0];
                     else {
                         Log.d("vmimo", (String) args[0]);
-                        try{data = new JSONObject((String) args[0]);}catch(Exception e){e.printStackTrace(); return;}
+                        String s = (String) args[0];
+                        if("cmd:clear".equals(s)){
+                            board.paths = new ArrayList<Path>();
+                            draw();
+                            return;
+                        }
+                        try{data = new JSONObject(s);}catch(Exception e){e.printStackTrace(); return;}
                     }
                     try {
                         ArrayList<Coordinate> pathCoords = new ArrayList<Coordinate>();
@@ -157,20 +164,5 @@ public class Whiteboard extends Activity {
             });
         }
     };
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 
 }
