@@ -5,34 +5,18 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
-import android.widget.ImageView;
 import android.widget.TableLayout;
 
 import com.github.nkzawa.emitter.Emitter;
-import com.github.nkzawa.socketio.client.IO;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -43,8 +27,7 @@ public class Whiteboard extends Activity {
 
     private Board board;
     private static final int SERVERPORT = 9090;
-    private static final String SERVER_IP = "162.243.19.167";
-    private com.github.nkzawa.socketio.client.Socket socket;
+    private static final String SERVER_IP = "";
     private float touchDownX, touchDownY = 0;
     private final static float TOUCH_THRESHHOLD = 10;
     private boolean isOnClick = false;
@@ -71,16 +54,8 @@ public class Whiteboard extends Activity {
             }
         });
         addContentView(board, new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.MATCH_PARENT));
-
-        try {
-            socket = IO.socket("http://" + SERVER_IP + ":" + SERVERPORT);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-        socket.connect();
-
-        socket.on("vmimo", onDataTransfer);
-        socket.connect();
+        SocketInstance.getInstance().getSocket().on("vmimo", onDataTransfer);
+        SocketInstance.getInstance().getSocket().connected();
     }
 
 
@@ -95,7 +70,7 @@ public class Whiteboard extends Activity {
                 return true;
             case MotionEvent.ACTION_UP:
                 try {
-                    socket.emit("vmimo", new JSONObject(board.currentPath.toString()));
+                    SocketInstance.getInstance().getSocket().emit("vmimo", new JSONObject(board.currentPath.toString()));
                 }catch(Exception e){e.printStackTrace();}
                 board.currentPath = null;
                 return true;
@@ -105,7 +80,7 @@ public class Whiteboard extends Activity {
                     board.currentPath.coordinates.add(new Coordinate(event.getX(), event.getY()));
                     if(board.currentPath.coordinates.size() % 4 == 0){
                         try {
-                            socket.emit("vmimo", new JSONObject(board.currentPath.toString()));
+                            SocketInstance.getInstance().getSocket().emit("vmimo", new JSONObject(board.currentPath.toString()));
                         }catch(Exception e){e.printStackTrace();}
                         board.currentPath = new Path(new ArrayList<Coordinate>(Arrays.asList(board.currentPath.coordinates.get(board.currentPath.coordinates.size() - 1))));
                     }
@@ -124,7 +99,7 @@ public class Whiteboard extends Activity {
 
     public void onDestroy() {
         super.onDestroy();
-        socket.disconnect();
+        SocketInstance.getInstance().getSocket().disconnect();
     }
 
     private Emitter.Listener onDataTransfer = new Emitter.Listener() {

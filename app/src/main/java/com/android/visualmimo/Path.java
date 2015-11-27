@@ -29,6 +29,7 @@ public class Path {
     }
 
     public String toString(){
+        if(coordinates.size() == 0) return "{}";
         String JSON = "{";
         JSON += "\"colour\":" + colour + ",";
         JSON += "\"coordinates\":[";
