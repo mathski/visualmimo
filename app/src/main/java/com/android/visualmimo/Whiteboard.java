@@ -12,6 +12,8 @@ import android.view.Window;
 import android.widget.TableLayout;
 
 import com.github.nkzawa.emitter.Emitter;
+import com.github.nkzawa.socketio.client.IO;
+import com.github.nkzawa.socketio.client.Socket;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,12 +27,35 @@ import java.util.Arrays;
  */
 public class Whiteboard extends Activity {
 
+    enum WhiteboardTool{
+
+        PENCIL(R.drawable.pencil, 4, 0, "Draw"),
+        ERASER(R.drawable.eraser, 4, 1, "Eraser");
+
+        public int x, y, icon, height = -1, width = -1;
+        public String name;
+        private WhiteboardTool(int drawable, int x, int pos, String name){
+            this.icon = drawable;
+            this.x = x;
+            this.y = pos;
+            this.name = name;
+        }
+
+        public boolean clickInBounds(float cX, float cY){
+            if(cX < x || cX > x + width) return false;
+            if(cY < y || cY > y + height) return false;
+            return true;
+        }
+
+    }
+
     private Board board;
     private static final int SERVERPORT = 9090;
     private static final String SERVER_IP = "";
     private float touchDownX, touchDownY = 0;
     private final static float TOUCH_THRESHHOLD = 10;
     private boolean isOnClick = false;
+    private Socket socket;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,33 +79,43 @@ public class Whiteboard extends Activity {
             }
         });
         addContentView(board, new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.MATCH_PARENT));
-        SocketInstance.getInstance().getSocket().on("vmimo", onDataTransfer);
-        SocketInstance.getInstance().getSocket().connected();
+        try {
+            socket = IO.socket("http://162.243.19.167:9090");
+        }catch(Exception e){e.printStackTrace();}
+        socket.connect();
+        socket.on("vmimo", onDataTransfer);
     }
-
 
     public boolean touch(MotionEvent event) {
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
-                board.currentPath = new Path(new ArrayList<Coordinate>());
-                //board.paths.add(new Path(new ArrayList<Coordinate>()));
                 touchDownX = event.getX();
                 touchDownY = event.getY();
                 isOnClick = true;
+                for(WhiteboardTool tool : WhiteboardTool.values()){
+                    if(tool.clickInBounds(touchDownX, touchDownY)){
+                        board.currentTool = tool;
+                        draw();
+                        return true;
+                    }
+                }
+                board.currentPath = new Path(new ArrayList<Coordinate>());
                 return true;
             case MotionEvent.ACTION_UP:
+                if(board.currentPath == null || board.currentPath.coordinates.size() == 0) return true;
                 try {
-                    SocketInstance.getInstance().getSocket().emit("vmimo", new JSONObject(board.currentPath.toString()));
+                    socket.emit("vmimo", new JSONObject(board.currentPath.toString()));
                 }catch(Exception e){e.printStackTrace();}
                 board.currentPath = null;
                 return true;
             case MotionEvent.ACTION_MOVE:
                 if ((Math.abs(touchDownX - event.getX()) > TOUCH_THRESHHOLD || Math.abs(touchDownY - event.getY()) > TOUCH_THRESHHOLD)) {
                     isOnClick = false;
+                    if(board.currentPath == null) board.currentPath = new Path(new ArrayList<Coordinate>());
                     board.currentPath.coordinates.add(new Coordinate(event.getX(), event.getY()));
                     if(board.currentPath.coordinates.size() % 4 == 0){
                         try {
-                            SocketInstance.getInstance().getSocket().emit("vmimo", new JSONObject(board.currentPath.toString()));
+                            socket.emit("vmimo", new JSONObject(board.currentPath.toString()));
                         }catch(Exception e){e.printStackTrace();}
                         board.currentPath = new Path(new ArrayList<Coordinate>(Arrays.asList(board.currentPath.coordinates.get(board.currentPath.coordinates.size() - 1))));
                     }
@@ -99,7 +134,8 @@ public class Whiteboard extends Activity {
 
     public void onDestroy() {
         super.onDestroy();
-        SocketInstance.getInstance().getSocket().disconnect();
+        socket.disconnect();
+        socket.close();
     }
 
     private Emitter.Listener onDataTransfer = new Emitter.Listener() {
@@ -109,7 +145,9 @@ public class Whiteboard extends Activity {
                 @Override
                 public void run() {
                     JSONObject data;
-                    if(args[0] instanceof JSONObject) data = (JSONObject) args[0];
+                    if(args[0] instanceof JSONObject){
+                        data = (JSONObject) args[0];
+                    }
                     else {
                         Log.d("vmimo", (String) args[0]);
                         String s = (String) args[0];
@@ -118,9 +156,15 @@ public class Whiteboard extends Activity {
                             draw();
                             return;
                         }
+                        if(s.contains("cmd:colour")){
+                            int colour = Integer.valueOf(s.split(":")[2]);
+                            Path._DEFAULT_COLOUR = colour;
+                            return;
+                        }
                         try{data = new JSONObject(s);}catch(Exception e){e.printStackTrace(); return;}
                     }
                     try {
+                        if(data.isNull("colour") || !data.has("colour") || data.isNull("coordinates")) return;
                         ArrayList<Coordinate> pathCoords = new ArrayList<Coordinate>();
                         int colour = data.getInt("colour");
                         JSONArray coordinates = data.getJSONArray("coordinates");

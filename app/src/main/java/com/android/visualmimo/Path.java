@@ -11,11 +11,13 @@ import java.util.ArrayList;
  */
 public class Path {
 
-    public int colour = Color.RED;
+    public static int _DEFAULT_COLOUR = Color.WHITE;
+    public int colour = _DEFAULT_COLOUR;
     public ArrayList<Coordinate> coordinates = new ArrayList<Coordinate>();
 
     public Path(ArrayList<Coordinate> coordinates){
         this.coordinates = coordinates;
+        colour = _DEFAULT_COLOUR;
     }
 
     public void draw(Canvas canvas, Paint paint){

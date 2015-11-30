@@ -22,11 +22,10 @@ public class SocketInstance {
 
     private SocketInstance() {
         try {
-            socket = IO.socket(_SERVER_ADDRESS);
+            socket = IO.socket("http://162.243.19.167:9090");
+            socket = socket.connect();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
-
-        socket = socket.connect();
     }
 }
