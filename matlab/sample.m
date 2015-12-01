@@ -5,6 +5,10 @@ function [ message ] = sample(imageId, message)
 %          defaults to '5'.
 % message: optional string giving message to embed
 %          defaults to 'abcdefghijk'
+assert(isa(imageId, 'char'))
+assert(isa(message, 'char'))
+coder.extrinsic('exist')
+
 
 alpha = 10;
 fps = 10;
@@ -14,6 +18,7 @@ width = 560;
 
 if ~exist('imageId', 'var'), imageId = '5'; end
 [img, cmap] = imread(fullfile('images', imageId),'jpeg');
+% [img, cmap] = imread(imageId,'jpeg');
 
 %[height,width,~]=size(img);
 img=imresize(img, [height width]);
@@ -36,7 +41,9 @@ end
 % messages = {'abcdefghijk'; 'lmnopqrstuv'};
 
 frames = [];
+totalmessage = '';
 for i = 1:length(messages);
+    totalmessage = strcat(totalmessage, messages{i});
     message = asciiMessage(messages{i}, 80, i-1);
     
     % sync_bit for in-progress multiframe implementation
@@ -45,13 +52,18 @@ for i = 1:length(messages);
         sync_bit = -1;
     end
 
-    img1=uint8(img * 255 + messageEncoder(alpha, height, width, 8, 10, message, 0, sync_bit));
-    img2=uint8(img * 255 + messageEncoder(alpha, height, width, 8, 10, message, 1, sync_bit));
+     img1=uint8(img * 255 + checkerboardEncoder(alpha, height, width, 8, 10, message, 0, sync_bit));
+     img2=uint8(img * 255 + checkerboardEncoder(alpha, height, width, 8, 10, message, 1, sync_bit));
+    
+%     img1=uint8(img * 255 + colorEncoder(img, height, width, message, 0, sync_bit));
+%     img2=uint8(img * 255 + colorEncoder(img, height, width, message, 1, sync_bit));
     
     frames = [frames im2frame(img1,cmap)];
     frames = [frames im2frame(img2,cmap)];
 end
 
-writeFrames(frames, 'vmimo.avi', 10);
+
+filename = strcat(imageId, '-', totalmessage, '.avi');
+writeFrames(frames, filename, 10);
 
 end

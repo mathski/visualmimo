@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>VMIMO VIEW</title>
+</head>
+<body>
+
+	<video width="560" height="448" autoplay loop controls>
+		<source src="{{ url_for('encode', imageid=imageid, asciistring=asciistring) }}" type="video/avi" />
+		Your browser does not support the video tag.
+	</video>
+
+</body>
+</html>

@@ -1,3 +1,6 @@
+*.prj
+*.mexa64
+
 ### Eclipse ###
 *.pydevproject
 .metadata

@@ -7,6 +7,7 @@ function [finalmask] = createBlendingMask(blocksize)
 nblock = 3; % Don't change this
 repeatsize = 5; % increases blurring between borders
 
+coder.varsize('blurfilt')
 blurfilt = conv2([1 4 6 4 1], [1 4 6 4 1]')/256;
 for i = 1:repeatsize, blurfilt = conv2(blurfilt,blurfilt); end;
 
@@ -48,6 +49,7 @@ end;
  % 9x1 vector per pixel as defined by the mask sums to 1
  
  ss  = nblock*blocksize;
+ normfactor = zeros(ss,ss);
  for (ii = 1:ss),
      for (jj = 1:ss)
         normfactor(ii,jj) = sum(mask(:,ii,jj));
