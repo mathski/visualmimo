@@ -6,6 +6,7 @@ import com.qualcomm.vuforia.CameraDevice;
 import com.qualcomm.vuforia.Renderer;
 import com.qualcomm.vuforia.Vec2F;
 import com.qualcomm.vuforia.Vec3F;
+import com.qualcomm.vuforia.Vec4F;
 import com.qualcomm.vuforia.VideoBackgroundConfig;
 import com.qualcomm.vuforia.VideoMode;
 
@@ -51,6 +52,10 @@ public class MatrixUtils {
 	}
 	
 	public static void printVector(Vec3F v) {
+		printFloatArray(v.getData());
+	}
+
+	public static void printVector(Vec4F v) {
 		printFloatArray(v.getData());
 	}
 	
