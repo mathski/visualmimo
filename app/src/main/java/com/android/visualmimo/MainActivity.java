@@ -631,7 +631,7 @@ public class MainActivity extends Activity implements Callback{
 								public void onResponse(String response) {
 									if (!response.equalsIgnoreCase("null")) {
 										try {
-											vuforiaAppSession.stopAR();
+											vuforiaAppSession.pauseAR();
 										} catch (Exception e) {
 											e.printStackTrace();
 										}
