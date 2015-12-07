@@ -56,6 +56,7 @@ public class Whiteboard extends Activity {
     private final static float TOUCH_THRESHHOLD = 10;
     private boolean isOnClick = false;
     private Socket socket;
+    public static String id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,6 +106,7 @@ public class Whiteboard extends Activity {
                 if(board.currentPath == null || board.currentPath.coordinates.size() == 0) return true;
                 try {
                     socket.emit("vmimo", new JSONObject(board.currentPath.toString()));
+                    board.paths.add(board.currentPath);
                 }catch(Exception e){e.printStackTrace();}
                 board.currentPath = null;
                 return true;
@@ -116,6 +118,7 @@ public class Whiteboard extends Activity {
                     if(board.currentPath.coordinates.size() % 4 == 0){
                         try {
                             socket.emit("vmimo", new JSONObject(board.currentPath.toString()));
+                            board.paths.add(board.currentPath);
                         }catch(Exception e){e.printStackTrace();}
                         board.currentPath = new Path(new ArrayList<Coordinate>(Arrays.asList(board.currentPath.coordinates.get(board.currentPath.coordinates.size() - 1))));
                     }
@@ -160,11 +163,15 @@ public class Whiteboard extends Activity {
                             int colour = Integer.valueOf(s.split(":")[2]);
                             Path._DEFAULT_COLOUR = colour;
                             return;
+                        }else if(s.contains("cmd:id")){
+                            id = s.split(":")[2];
+                            return;
                         }
                         try{data = new JSONObject(s);}catch(Exception e){e.printStackTrace(); return;}
                     }
                     try {
-                        if(data.isNull("colour") || !data.has("colour") || data.isNull("coordinates")) return;
+                        if(data.isNull("colour") || !data.has("colour") || data.isNull("coordinates") || !data.has("id")) return;
+                        if(data.getString("id").equals(id)) return; //This device drew it.
                         ArrayList<Coordinate> pathCoords = new ArrayList<Coordinate>();
                         int colour = data.getInt("colour");
                         JSONArray coordinates = data.getJSONArray("coordinates");

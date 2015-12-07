@@ -34,6 +34,7 @@ public class Path {
         if(coordinates.size() == 0) return "{}";
         String JSON = "{";
         JSON += "\"colour\":" + colour + ",";
+        JSON += "\"id\":" + Whiteboard.id + ",";
         JSON += "\"coordinates\":[";
         for(Coordinate c : coordinates){
             JSON += ((double) c.x) + "," + ((double) c.y) + ",";

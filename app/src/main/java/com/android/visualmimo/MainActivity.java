@@ -625,7 +625,7 @@ public class MainActivity extends Activity implements Callback{
 			queue.add(
 					new StringRequest(
 							Request.Method.GET,
-							"http://playground.charredsoftware.com/whiteboard.php?id=" + extracted.message,
+							"http://playground.charredsoftware.com/whiteboard.php?id=" + extracted.binary,
 							new Response.Listener<String>() {
 								@Override
 								public void onResponse(String response) {
