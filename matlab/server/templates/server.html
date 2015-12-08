@@ -5,8 +5,8 @@
 </head>
 <body>
 
-	<video width="560" height="448" autoplay loop controls>
-		<source src="{{ url_for('encode', imageid=imageid, asciistring=asciistring) }}" type="video/avi" />
+	<video width="560" height="448" autoplay loop>
+		<source src="{{ url_for('encode', imageid=imageid, asciistring=asciistring) }}" type="video/webm" />
 		Your browser does not support the video tag.
 	</video>
 
