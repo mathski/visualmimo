@@ -88,6 +88,9 @@ public class Whiteboard extends Activity {
         }catch(Exception e){e.printStackTrace();}
         socket.connect();
         socket.on("vmimo", onDataTransfer);
+        try {
+            socket.emit("vmimo_cmd", new JSONObject("{\"room\":\"" + imageId + "\"}"));
+        }catch(Exception e){e.printStackTrace();}
     }
 
     public boolean touch(MotionEvent event) {
@@ -152,10 +155,13 @@ public class Whiteboard extends Activity {
                 @Override
                 public void run() {
                     JSONObject data;
+                    if(args[0] instanceof JSONArray){
+                        return;
+                    }
                     if(args[0] instanceof JSONObject){
                         data = (JSONObject) args[0];
                     }
-                    else {
+                    else{
                         Log.d("vmimo", (String) args[0]);
                         String s = (String) args[0];
                         if("cmd:clear".equals(s)){
