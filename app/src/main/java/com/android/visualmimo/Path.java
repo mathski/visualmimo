@@ -37,7 +37,7 @@ public class Path {
         JSON += "\"id\":" + Whiteboard.id + ",";
         JSON += "\"coordinates\":[";
         for(Coordinate c : coordinates){
-            JSON += ((double) c.x) + "," + ((double) c.y) + ",";
+            JSON += ((double) c.x / Board._X_SCALE) + "," + ((double) c.y / Board._Y_SCALE) + ",";
         }
         JSON = JSON.substring(0, JSON.length() - 2);
         JSON += "]}";

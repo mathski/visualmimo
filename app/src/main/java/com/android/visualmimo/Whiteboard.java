@@ -67,15 +67,18 @@ public class Whiteboard extends Activity {
 
         Point size = new Point();
         getWindowManager().getDefaultDisplay().getSize(size);
+        Drawable d;
 
-        if(!getIntent().getStringExtra("id").equals("15")) return;
+        String imageId = getIntent().getStringExtra("id");
+        if("15".equals(imageId)){
+            d = getResources().getDrawable(R.drawable.fifteen);
+        }else if("5".equals(imageId)){
+            d = getResources().getDrawable(R.drawable.five);
+        }else return;
 
-        Drawable d = getResources().getDrawable(R.drawable.fifteen);
-        d.setBounds(0, 0, size.x, size.y);
-
-        board = new Board(this, d);
+        board = new Board(this, d, size);
         board.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
+            public boolean onTouch(View v, MotionEvent event) { 
                 return touch(event);
             }
         });
@@ -137,6 +140,7 @@ public class Whiteboard extends Activity {
 
     public void onDestroy() {
         super.onDestroy();
+        if(socket == null) return;
         socket.disconnect();
         socket.close();
     }
@@ -166,6 +170,10 @@ public class Whiteboard extends Activity {
                         }else if(s.contains("cmd:id")){
                             id = s.split(":")[2];
                             return;
+                        }else if(s.contains("cmd:size")){
+                            String param = s.split(":")[2];
+                          //  board.resize(Integer.parseInt(param.split("x")[1]), Integer.parseInt(param.split("x")[0]));
+                            return;
                         }
                         try{data = new JSONObject(s);}catch(Exception e){e.printStackTrace(); return;}
                     }
@@ -176,7 +184,7 @@ public class Whiteboard extends Activity {
                         int colour = data.getInt("colour");
                         JSONArray coordinates = data.getJSONArray("coordinates");
                         for(int i = 0; i < coordinates.length(); i += 2){
-                            pathCoords.add(new Coordinate((float) coordinates.getDouble(i), (float) coordinates.getDouble(i + 1)));
+                            pathCoords.add(new Coordinate((float) coordinates.getDouble(i) * Board._X_SCALE, (float) coordinates.getDouble(i + 1) * Board._Y_SCALE));
                         }
                         Path resultantPath = new Path(pathCoords);
                         resultantPath.colour = colour;
