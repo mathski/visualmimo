@@ -11,6 +11,8 @@ if ~exist('fps', 'var'), fps = 10; end
 if ~exist('height', 'var'), height = 448; end
 if ~exist('width', 'var'), width = 560; end
 
+fps = double(fps); % necessary for python
+
 if ~exist('imageId', 'var'), imageId = '5'; end
 [img, cmap] = imread(fullfile('images', imageId),'jpeg');
 % [img, cmap] = imread(imageId,'jpeg');
