@@ -2,7 +2,7 @@
 # Trivial flask server to wrap MATLAB encoder and serve output
 # Remember to `source set_ld_path.sh` before running.
 
-from flask import Flask, send_file, render_template
+from flask import Flask, send_file, render_template, request
 import os.path
 import subprocess
 import vmimo.server
@@ -17,8 +17,13 @@ def root():
 
 @app.route('/encode/<string:imageid>/<string:asciistring>')
 def encode(imageid, asciistring):
-	filename = imageid + '-' + asciistring + '.avi'
-	filename_webm = imageid + '-' + asciistring + '.webm'
+	fps = request.args.get('fps', 10, type=int)
+	alpha = request.args.get('alpha', 10, type=int)
+	height = request.args.get('height', 448, type=int)
+	width = request.args.get('width', 560, type=int)
+
+	filename = imageid + '-' + asciistring + '-' + str(alpha) + '-' + str(fps) + '.avi'
+	filename_webm = imageid + '-' + asciistring + '-' + str(alpha) + '-' + str(fps) + '.webm'
 
 	print('encoding %s' % filename)
 
@@ -28,7 +33,7 @@ def encode(imageid, asciistring):
 	if not os.path.isfile(filename):
 		print(os.listdir())
 		print('file (%s) not found, generating...' % filename)
-		s.sample(imageid, asciistring)
+		s.sample(imageid, asciistring, alpha, fps, height, width)
 		print('...generated!')
 
 	# note that I'm passing unsanitized input as parameters.

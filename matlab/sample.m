@@ -1,20 +1,15 @@
-function [ message ] = sample(imageId, message)
+function [ message ] = sample(imageId, message, alpha, fps, height, width)
 % Sample main function that encodes a message as a checkerboard, applies it
 % to an image, and writes the result to file.
 % imageId: optional string corresponding to one of the images in `images/`.
 %          defaults to '5'.
 % message: optional string giving message to embed
 %          defaults to 'abcdefghijk'
-assert(isa(imageId, 'char'))
-assert(isa(message, 'char'))
-coder.extrinsic('exist')
 
-
-alpha = 10;
-fps = 10;
-
-height = 448;
-width = 560;
+if ~exist('alpha', 'var'), alpha = 10; end
+if ~exist('fps', 'var'), fps = 10; end
+if ~exist('height', 'var'), height = 448; end
+if ~exist('width', 'var'), width = 560; end
 
 if ~exist('imageId', 'var'), imageId = '5'; end
 [img, cmap] = imread(fullfile('images', imageId),'jpeg');
@@ -63,7 +58,7 @@ for i = 1:length(messages);
 end
 
 
-filename = strcat(imageId, '-', totalmessage, '.avi');
-writeFrames(frames, filename, 10);
+filename = strcat(imageId, '-', totalmessage, '-', int2str(alpha), '-', int2str(fps),  '.avi');
+writeFrames(frames, filename, fps);
 
 end
