@@ -84,7 +84,7 @@ public class Whiteboard extends Activity {
         });
         addContentView(board, new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.MATCH_PARENT));
         try {
-            socket = IO.socket("http://162.243.19.167:9090");
+            socket = IO.socket("http://vmimo.convex.vision:9090/");
         }catch(Exception e){e.printStackTrace();}
         socket.connect();
         socket.on("vmimo", onDataTransfer);
