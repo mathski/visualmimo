@@ -6,6 +6,8 @@
     <string name="switch_views">Switch View</string>
     <color name="displayColor">#f00</color>
     <string name="title_activity_whiteboard">Whiteboard</string>
+    <string name="instructions">VMIMO Analytics App: Begin by starting the bench on your local machine or server.</string>
+    <string name="title_activity_analytics">Analytics</string>
 
     <string name="hello_world">Hello world!</string>
 

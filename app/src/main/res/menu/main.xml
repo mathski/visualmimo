@@ -34,4 +34,10 @@
         android:showAsAction="never"
         />
 
+    <item android:id="@+id/action_analytics"
+        android:icon="@android:drawable/picture_frame"
+        android:title="Analytics"
+        android:showAsAction="never"
+        />
+
 </menu>

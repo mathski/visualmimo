@@ -7,35 +7,19 @@ and other countries. Trademarks of QUALCOMM Incorporated are used with permissio
 
 package com.android.visualmimo.camera;
 
-import java.util.Vector;
-
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import android.app.Activity;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
-import android.opengl.Matrix;
-import android.util.DisplayMetrics;
 import android.util.Log;
 
-import com.qualcomm.QCAR.QCAR;
-import com.qualcomm.vuforia.CameraCalibration;
-import com.qualcomm.vuforia.CameraDevice;
-import com.qualcomm.vuforia.ImageTarget;
-import com.qualcomm.vuforia.ImageTargetBuilder;
-import com.qualcomm.vuforia.Matrix44F;
 import com.qualcomm.vuforia.Renderer;
 import com.qualcomm.vuforia.State;
-import com.qualcomm.vuforia.Tool;
 import com.qualcomm.vuforia.Trackable;
-import com.qualcomm.vuforia.TrackableResult;
 import com.qualcomm.vuforia.VIDEO_BACKGROUND_REFLECTION;
-import com.qualcomm.vuforia.Vec2F;
-import com.qualcomm.vuforia.Vec3F;
-import com.qualcomm.vuforia.samples.SampleApplication.SampleApplicationSession;
-import com.qualcomm.vuforia.samples.SampleApplication.utils.LoadingDialogHandler;
-import com.qualcomm.vuforia.samples.SampleApplication.utils.SampleUtils;
-import com.android.visualmimo.MainActivity;
+import com.qualcomm.vuforia.samples.SampleApplication.VuforiaSession;
 
 
 // The renderer class for the ImageTargets sample. 
@@ -43,8 +27,8 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer
 {
     private static final String LOGTAG = "ImageTargetRenderer";
     
-    private SampleApplicationSession vuforiaAppSession;
-    private MainActivity mActivity;
+    private VuforiaSession vuforiaAppSession;
+    private Activity mActivity;
     
     private int shaderProgramID;
     
@@ -54,8 +38,8 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer
     
     private static final float OBJECT_SCALE_FLOAT = 3.0f;
     
-    public ImageTargetRenderer(MainActivity activity,
-        SampleApplicationSession session)
+    public ImageTargetRenderer(Activity activity,
+        VuforiaSession session)
     {
         mActivity = activity;
         vuforiaAppSession = session;
@@ -105,8 +89,7 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer
         mRenderer = Renderer.getInstance();
 
         // Hide the Loading Dialog
-        mActivity.loadingDialogHandler
-            .sendEmptyMessage(LoadingDialogHandler.HIDE_LOADING_DIALOG);
+       // mActivity.loadingDialogHandler.sendEmptyMessage(LoadingDialogHandler.HIDE_LOADING_DIALOG);
         
     }
     
