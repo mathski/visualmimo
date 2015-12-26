@@ -17,6 +17,9 @@ C++ code is in `app/src/main/jni/`. The CV logic is in `image_processing.cpp`, w
 
 To run on a computer, `cd` to the `jni` directory and run `make`, then `./simulator`.
 
+## Test Bench
+The test bench is in `bench` (currently in the analytics brand). The project uses Maven, so you must right click on it > Configure > Make Maven Project (Eclipse, assuming Maven project installed). It utilizes VLCj to do video outputs, and directly references the server-side image generation.
+
 ## Current hacks
 
 - At the time of writing, Android Studio / gradle support for NDK is limited to projects that don't include libraries. The gradle config thus disables the NDK compile and manually runs `ndk-compile` when building the project.
@@ -25,8 +28,6 @@ To run on a computer, `cd` to the `jni` directory and run `make`, then `./simula
 ## TODO
 
 - Play with new new embedding methods
-- Improved "test bench" with, for example, a way to randomly generate a message in MATLAB and test accuracy of reading on device (communicate test string over network, or generate using same short seed?)
 - Clean up MATLAB code a lot
 - Figure out how to draw on Android screen to display information
-- Trim ancient sample code from Android
 - Chromecast pairing demo
