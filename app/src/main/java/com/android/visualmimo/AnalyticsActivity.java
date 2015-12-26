@@ -1,26 +1,20 @@
 package com.android.visualmimo;
 
 import android.content.pm.ActivityInfo;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.Message;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
-import com.android.visualmimo.persistence.MIMOFrame;
-import com.qualcomm.vuforia.CameraCalibration;
-import com.qualcomm.vuforia.CameraDevice;
-import com.qualcomm.vuforia.Frame;
-import com.qualcomm.vuforia.Image;
-import com.qualcomm.vuforia.ImageTarget;
-import com.qualcomm.vuforia.Matrix44F;
 import com.qualcomm.vuforia.State;
-import com.qualcomm.vuforia.Tool;
-import com.qualcomm.vuforia.Trackable;
-import com.qualcomm.vuforia.TrackableResult;
-import com.qualcomm.vuforia.Vec2F;
-import com.qualcomm.vuforia.Vec3F;
-import com.qualcomm.vuforia.samples.SampleApplication.VuforiaException;
+import com.qualcomm.vuforia.samples.SampleApplication.utils.LoadingDialogHandler;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,11 +23,11 @@ import java.io.OutputStreamWriter;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
+import java.util.Random;
 
 public class AnalyticsActivity extends VuforiaActivity  implements Callback {
 
-    private boolean takePicture = false;
+    private volatile boolean takePicture = false;
     private SocketClient socket;
     private Thread socketThread = null;
 
@@ -42,11 +36,18 @@ public class AnalyticsActivity extends VuforiaActivity  implements Callback {
         super.onCreate(savedInstanceState);
         String serverCon = getIntent().getStringExtra("serverCon");
         setContentView(R.layout.activity_analytics_act);
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        mUILayout = (RelativeLayout) inflater.inflate(R.layout.activity_analytics_act, null, false);
+        mUILayout.setVisibility(View.VISIBLE);
+        mUILayout.setBackgroundColor(Color.TRANSPARENT);
+        addContentView(mUILayout, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         vuforiaAppSession.initAR(this, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         try{
             vuforiaAppSession.startAR();
             Log.d(LOGTAG, "Vuforia started!");
         }catch(Exception e){e.printStackTrace();}
+        vuforiaAppSession.drawOnView(this, mUILayout);
 
         socket = new SocketClient(serverCon);
         socket.execute();
@@ -57,14 +58,19 @@ public class AnalyticsActivity extends VuforiaActivity  implements Callback {
     /** Create new MIMOFrame, add to FrameCache. */
     public void onQCARUpdate(State state) {
         onQCARUpdate(state, takePicture);
-        takePicture = false;
+        if(saveCount > NUM_SAVES){
+            saveCount = 0;
+            takePicture = false;
+        }
     }
 
     /** Updates message display */
     @Override
     public boolean handleMessage(Message msg) {
         ExtractedMessage extracted = (ExtractedMessage) msg.obj;
-        showToast(extracted.message);
+        socket.sendMessage(extracted.binary);
+        Log.d(LOGTAG, "Message recovered: " + extracted.message);
+        takePicture = false;
         return true;
     }
 
@@ -107,6 +113,10 @@ public class AnalyticsActivity extends VuforiaActivity  implements Callback {
                     while (reader.ready()) {
                         String message = reader.readLine();
                         Log.d(LOGTAG, message);
+                        if(message.contains("test=true")) {
+                            takePicture = true;
+                            saveCount = 0;
+                        }
                     }
                 }catch(Exception e){try{socket.close();}catch(Exception inner){inner.printStackTrace();}}
             }

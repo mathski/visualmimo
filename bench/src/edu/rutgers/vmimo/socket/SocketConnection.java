@@ -1,7 +1,6 @@
 package edu.rutgers.vmimo.socket;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -11,7 +10,6 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.util.Random;
 
 public class SocketConnection extends ServerSocket implements Runnable{
 
@@ -19,6 +17,9 @@ public class SocketConnection extends ServerSocket implements Runnable{
 	public boolean serverRunning = false;
 	public Socket currentClient = null;
 	private OutputStreamWriter osw = null;
+	private long timeOfLastMessage = 0;
+	private String lastMessage = "";
+	final Object lockObject = new Object();
 	
 	public SocketConnection(int port) throws IOException{
 		super(port);
@@ -58,6 +59,28 @@ public class SocketConnection extends ServerSocket implements Runnable{
 		catch(IOException e){e.printStackTrace();}
 	}
 	
+	/*public String getNextMessageOrWait(){
+		long savedSastMessageTime = timeOfLastMessage;
+		while(serverRunning && savedSastMessageTime < this.timeOfLastMessage){
+			System.out.println("Waiting for a new message");
+			if(currentClient == null || currentClient.isClosed()) break;
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {e.printStackTrace();}
+		}
+		return lastMessage;
+	}*/
+	
+	public String getNextMessageOrWait(){
+		synchronized(lockObject){
+			try {
+				lockObject.wait();
+				return lastMessage;
+			} catch (InterruptedException e) {e.printStackTrace();}
+		}
+		return "Error waiting for last message";
+	}
+	
 	public void run(){
 		BufferedReader reader = null;
 		while(serverRunning){
@@ -68,8 +91,13 @@ public class SocketConnection extends ServerSocket implements Runnable{
 					reader = new BufferedReader(new InputStreamReader(currentClient.getInputStream()));
 					continue;
 				}
-				while (reader.ready()){
-					System.out.println(reader.readLine());
+				synchronized(lockObject){
+					while (reader.ready()){
+						timeOfLastMessage = System.currentTimeMillis() / 1000L;
+						lastMessage = reader.readLine();
+						System.out.println("Received: " + lastMessage);
+						lockObject.notify();
+					}
 				}
 	         }catch(SocketTimeoutException s){ //Timeouts aren't actually errors since we time out every second (to allow accept() to die).
 	         }catch(IOException e){
@@ -77,6 +105,9 @@ public class SocketConnection extends ServerSocket implements Runnable{
 	            break;
 	         }
 	      }
+		  synchronized(lockObject){
+			  lockObject.notify(); //We're dead in the water, stop waiting.
+		  }
 	      try{
 	    	  if(osw != null) osw.close();
 	    	  if(reader != null) reader.close();

@@ -13,6 +13,7 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.text.Layout;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ViewGroup;
@@ -132,7 +133,11 @@ public class VuforiaSession implements UpdateCallbackInterface{
      */
     public void initAR(VuforiaActivity activity, int screenOrientation)
     {
-        if(_IR_INITIALIZED) return;
+        if(_IR_INITIALIZED){
+            mActivity = mSessionControl = activity;
+            mActivity.setRequestedOrientation(screenOrientation);
+            return;
+        }
         _IR_INITIALIZED = true;
         VuforiaException vuforiaException = null;
         mActivity = activity;
@@ -178,15 +183,15 @@ public class VuforiaSession implements UpdateCallbackInterface{
      * Called by #onInitARDone(VuforiaException)
      */
     private void initApplicationAR() {
-        int depthSize = 16;
+       /* int depthSize = 16;
         int stencilSize = 0;
         boolean translucent = Vuforia.requiresAlpha();
 
         mGlView = new VuforiaGLView(mActivity);
         mGlView.init(translucent, depthSize, stencilSize);
-
+*/
         mRenderer = new ImageTargetRenderer(mActivity, this);
-        mGlView.setRenderer(mRenderer);
+        //mGlView.setRenderer(mRenderer);
 
     }
 
@@ -197,6 +202,13 @@ public class VuforiaSession implements UpdateCallbackInterface{
      * @param mUILayout Layout to draw onto.
      */
     public void drawOnView(Activity activity, RelativeLayout mUILayout){
+        int depthSize = 16;
+        int stencilSize = 0;
+        boolean translucent = Vuforia.requiresAlpha();
+        mGlView = new VuforiaGLView(activity);
+        mGlView.init(translucent, depthSize, stencilSize);
+        mGlView.setRenderer(mRenderer);
+
         activity.addContentView(mGlView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         mUILayout.bringToFront();
         mUILayout.setBackgroundColor(Color.TRANSPARENT);
@@ -442,7 +454,8 @@ public class VuforiaSession implements UpdateCallbackInterface{
      * @param state State to be passed to #VuforiaActivity.onQCarUpdate(State)
      */
     public void QCAR_onUpdate(State state){
-        for(VuforiaActivity activity : activities) activity.onQCARUpdate(state);
+        //for(VuforiaActivity activity : activities) activity.onQCARUpdate(state);
+        mActivity.onQCARUpdate(state);
     }
 
     /**

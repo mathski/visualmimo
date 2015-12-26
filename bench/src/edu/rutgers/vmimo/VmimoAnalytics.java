@@ -1,16 +1,31 @@
 package edu.rutgers.vmimo;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Scanner;
+
+import javax.swing.JFrame;
+
+import org.apache.commons.io.FileUtils;
+
+import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
+import uk.co.caprica.vlcj.discovery.NativeDiscovery;
+
+import com.sun.jna.NativeLibrary;
 
 import edu.rutgers.vmimo.socket.SocketConnection;
 
 public class VmimoAnalytics {
 
-	public static int startingFPS, endingFPS, startingDelta, endingDelta, imagesPerDelta, deltaStep, imageId;
 	public static final Scanner in = new Scanner(System.in);
 	public static MessagePack messagePack;
 	public static SocketConnection socket;
+	private static JFrame window;
+	private static EmbeddedMediaPlayerComponent mediaPlayerComponent;
 	
 	/*
 	 * 
@@ -35,6 +50,10 @@ public class VmimoAnalytics {
 	 */
 	
 	public static void main(String[] args){
+		NativeLibrary.addSearchPath("libvlc", "C:/Program Files (x86)/VideoLAN/VLC");
+		new NativeDiscovery().discover();
+		createDisplayWindow();
+		
 		Thread socketThread = null;
 		messagePack = new MessagePack();
 		try{
@@ -57,6 +76,9 @@ public class VmimoAnalytics {
 		}
 		try{
 			System.out.println("Shutting down server");
+			mediaPlayerComponent.getMediaPlayer().stop();
+			mediaPlayerComponent.release();
+			window.dispose();
 			socket.serverRunning = false;
 			socket.invalidateCurrentClient();
 			if(!socket.isClosed()) socket.close();
@@ -67,6 +89,16 @@ public class VmimoAnalytics {
 		}catch(Exception e){e.printStackTrace();}
 	}
 
+	private static void createDisplayWindow(){
+		window = new JFrame("RU VMIMO Bench Display");
+		window.setBounds(100, 100, 600, 400);
+		window.setAlwaysOnTop(true);
+		mediaPlayerComponent = new EmbeddedMediaPlayerComponent();
+		mediaPlayerComponent.getMediaPlayer().setRepeat(true);
+        window.setContentPane(mediaPlayerComponent);
+		window.setVisible(true);
+	}
+	
 	private static void flushCache(){
 		System.out.println("Flushing messages cache.");
 		messagePack.flush();
@@ -101,16 +133,40 @@ public class VmimoAnalytics {
 		int imagesPerDelta = Math.max(Integer.parseInt(params[4]), messagePack._PACK_SIZE); //At least one per image
 		int deltaStep = Integer.parseInt(params[5]);
 		int imageID = Integer.parseInt(params[6]);
+		int picturesPerMessage = imagesPerDelta / messagePack._PACK_SIZE;
+		File videoFile = new File(System.getProperty("user.dir"), "video.webm");
 		
-		for(int fps = startingFPS; fps < endingFPS; fps ++){
-			for(int delta = startingDelta; delta < endingDelta; delta += deltaStep){
-				int picturesPerMessage = imagesPerDelta / messagePack._PACK_SIZE;
-				for(int picturesTaken = 0; picturesTaken < imagesPerDelta; picturesTaken += picturesPerMessage){
-					socket.sendMessage("test=true;imgcount=" + picturesPerMessage);
+		for(int fps = startingFPS; fps < endingFPS + 1; fps ++){
+			for(int delta = startingDelta; delta < endingDelta + deltaStep; delta += deltaStep){
+				double accuracySum = 0.00;
+				for(int currentMessage = 0; currentMessage < messagePack._PACK_SIZE; currentMessage ++){
+					System.out.println("Current: " + messagePack.binaryMessages[currentMessage]);
+					try {
+						FileUtils.copyURLToFile(new URL("http://vmimo.convex.vision/encode/" + imageID + "/" + messagePack.messages[currentMessage] + 
+								"?alpha=" + delta + "&fps=" + fps), videoFile);
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+
+					String[] options = {":file-caching=300", ":network-caching=300",
+			                ":sout = #transcode{vcodec=x264,vb=800,scale=1,acodec=,fps=" + "" + "}:display :no-sout-rtp-sap :no-sout-standard-sap :ttl=1 :sout-keep"};
+					mediaPlayerComponent.getMediaPlayer().playMedia("video.webm", options);
+					while(!mediaPlayerComponent.getMediaPlayer().isPlaying()){ //Wait until video actually playing
+						try{Thread.sleep(50);}catch(Exception e){e.printStackTrace();}
+					}
+					for(int image = 0; image < picturesPerMessage; image ++){
+						socket.sendMessage("test=true;imgcount=" + picturesPerMessage);
+						String Message = socket.getNextMessageOrWait();
+						accuracySum += MessagePack.getAccuracy(messagePack.binaryMessages[currentMessage], Message);
+					}
 				}
+				System.out.println("Accuracy of " + delta + " delta @ " + fps + "FPS: " + ((double) ((int) accuracySum / imagesPerDelta * 100) / 100) + "%");
 			}
 		}
 	
+		mediaPlayerComponent.getMediaPlayer().stop();
 	}
 	
 	private static void loadHelpMessages(){

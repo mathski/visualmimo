@@ -61,7 +61,6 @@ public class MainActivity extends VuforiaActivity implements Callback{
 	/** Set to false to bench under load. */
 	private boolean idleBenchMode = false;
 	private boolean benchingInProgress = false;
-	private int frameCount = 0;
 	private boolean recordingMode = false;
 	private boolean photoalbumMode = false, whiteboardDemo = false;
 
@@ -151,7 +150,10 @@ public class MainActivity extends VuforiaActivity implements Callback{
 	public void onQCARUpdate(State state) {
 		benchFPS();
 		onQCARUpdate(state, recordingMode || (benchingInProgress && !idleBenchMode));
-		recordingMode = false;
+		if(saveCount > NUM_SAVES){
+			saveCount = 0;
+			recordingMode = false;
+		}
 	}
 
 	@Override

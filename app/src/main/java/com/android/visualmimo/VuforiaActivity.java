@@ -39,6 +39,7 @@ public abstract class VuforiaActivity extends Activity implements Handler.Callba
     /** The number of images to save when we are recording. */
     protected int NUM_SAVES = 1;
     protected int saveCount = 0;
+    protected int frameCount = 0;
     /** Flag and data for burst collection. */
     protected boolean burstMode = false;
     protected static final int BURST_SAVES = 100;
@@ -154,7 +155,7 @@ public abstract class VuforiaActivity extends Activity implements Handler.Callba
                             imageHeight,
                             accuracies);
                 } else {
-                    saveCount = 0;
+                    //saveCount = 0;
                 }
             }
 
@@ -212,6 +213,9 @@ public abstract class VuforiaActivity extends Activity implements Handler.Callba
 
         try {
             vuforiaAppSession.stopAR();
+            if(mUILayout != null){
+                ((RelativeLayout) findViewById(R.id.layout_wrapper)).removeAllViews();
+            }
         } catch (VuforiaException e) {
             Log.e(LOGTAG, e.getString());
         }
