@@ -18,7 +18,7 @@ C++ code is in `app/src/main/jni/`. The CV logic is in `image_processing.cpp`, w
 To run on a computer, `cd` to the `jni` directory and run `make`, then `./simulator`.
 
 ## Test Bench
-The test bench is in `bench` (currently in the analytics brand). The project uses Maven, so you must right click on it > Configure > Make Maven Project (Eclipse, assuming Maven project installed). It utilizes VLCj to do video outputs, and directly references the server-side image generation.
+The test bench is in `bench` (currently in the analytics branch). The project uses Maven, so you must right click on it > Configure > Make Maven Project (Eclipse, assuming Maven project installed). It utilizes VLCj to do video outputs, and directly references the server-side image generation. 
 
 ## Current hacks
 
