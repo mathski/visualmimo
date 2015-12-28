@@ -50,12 +50,22 @@ public class VmimoAnalytics {
 	 */
 	
 	public static void main(String[] args){
-		NativeLibrary.addSearchPath("libvlc", "C:/Program Files (x86)/VideoLAN/VLC");
 		new NativeDiscovery().discover();
 		createDisplayWindow();
-		
 		Thread socketThread = null;
-		messagePack = new MessagePack();
+
+		try{
+			File messagesFile = new File(MessagePack._MESSAGES_SAVE_PATH);
+			messagesFile.createNewFile();
+			messagePack = new MessagePack(messagesFile);
+		}catch(IOException e){e.printStackTrace();}
+		
+		/*for(String binary : messagePack.binaryMessages){
+			messagePack.getAccuracy(binary, messagePack.binaryMessages[0]);
+		}
+		
+		messagePack.outputInaccuracies();
+		*/
 		try{
 			try
 		      {
@@ -104,6 +114,7 @@ public class VmimoAnalytics {
 		messagePack.flush();
 		System.out.println("Creating new message cache.");
 		messagePack.build();
+		messagePack.savePack();
 	}
 	
 	private static void newDevice(){
@@ -152,6 +163,7 @@ public class VmimoAnalytics {
 
 					String[] options = {":file-caching=300", ":network-caching=300",
 			                ":sout = #transcode{vcodec=x264,vb=800,scale=1,acodec=,fps=" + "" + "}:display :no-sout-rtp-sap :no-sout-standard-sap :ttl=1 :sout-keep"};
+					mediaPlayerComponent.getMediaPlayer().stop();
 					mediaPlayerComponent.getMediaPlayer().playMedia("video.webm", options);
 					while(!mediaPlayerComponent.getMediaPlayer().isPlaying()){ //Wait until video actually playing
 						try{Thread.sleep(50);}catch(Exception e){e.printStackTrace();}
@@ -159,14 +171,16 @@ public class VmimoAnalytics {
 					for(int image = 0; image < picturesPerMessage; image ++){
 						socket.sendMessage("test=true;imgcount=" + picturesPerMessage);
 						String Message = socket.getNextMessageOrWait();
-						accuracySum += MessagePack.getAccuracy(messagePack.binaryMessages[currentMessage], Message);
+						accuracySum += messagePack.getAccuracy(messagePack.binaryMessages[currentMessage], Message);
 					}
 				}
 				System.out.println("Accuracy of " + delta + " delta @ " + fps + "FPS: " + ((double) ((int) accuracySum / imagesPerDelta * 100) / 100) + "%");
 			}
 		}
-	
+		
 		mediaPlayerComponent.getMediaPlayer().stop();
+		
+		messagePack.outputInaccuracies();
 	}
 	
 	private static void loadHelpMessages(){

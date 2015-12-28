@@ -1,28 +1,106 @@
 package edu.rutgers.vmimo;
 
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.Random;
+
+import javax.imageio.ImageIO;
 
 public class MessagePack {
 
-	public static final int _PACK_SIZE = 2;
+	public static final int _PACK_SIZE = 20;
 	public static final int _MESSAGE_LENGTH_CHARS = 11;
 	public static final int _MESSAGE_LENGTH_BITS = 80;
 	public Random rand = new Random();
+	public int[] binaryInaccuracies = new int[_MESSAGE_LENGTH_BITS];
 	public String[] messages = new String[_PACK_SIZE];
 	public String[] binaryMessages = new String[_PACK_SIZE];
 	private static final String _ALLOWED_CHARACTERS = "abcdefghijklmnopqrstuvwxyz";
+	public static final String _MESSAGES_SAVE_PATH = "message.txt";
+	public int testedAccuracies = 0;
 	
 	public MessagePack(){
 		build();
+		savePack();
 	}
 	
-	public MessagePack(String path){
-		
+	/**
+	 * Creates a messagepack with messages stored in a file.
+	 * If the file doesn't have enough messages (< _PACK_SIZE) or is null, will create a new randomly generated pack.
+	 * @param file File to load from.
+	 */
+	public MessagePack(File file){
+		int currentPos = 0;
+		try{
+			BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+			String line;
+			while ((line = bufferedReader.readLine()) != null) {
+				messages[currentPos] = line;
+				binaryMessages[currentPos] = convertStringToBinary(messages[currentPos]);
+				currentPos ++;
+			}
+			bufferedReader.close();
+		}catch(IOException e){e.printStackTrace(); currentPos = 0;}
+		if(currentPos != _PACK_SIZE){
+			flush();
+			build();
+			savePack();
+		}
 	}
 
+	public void outputInaccuracies(){
+		final int _STEP_SIZE = 50;
+		int min = 0;
+		int max = testedAccuracies;
+		
+		System.out.println("MIN: " + min + ", MAX:" + max);
+		
+		//Text based output
+		for(int i = 0; i < binaryInaccuracies.length; i ++){
+			System.out.print("[" + binaryInaccuracies[i] + "," + ( ((binaryInaccuracies[i]-min) * 1.0) /(max-min)) + "],");
+			if( (i + 1) % 8 == 0 ) System.out.println();
+		}
+		
+		BufferedImage img = new BufferedImage(8 * _STEP_SIZE, 10 * _STEP_SIZE, BufferedImage.TYPE_INT_RGB);
+		for(int x = 0; x < 8 * _STEP_SIZE; x ++){
+			for(int y = 0; y < 10 * _STEP_SIZE; y ++){
+				int yPos = (y / _STEP_SIZE);
+				int xPos = (x / _STEP_SIZE);
+				int pos = (yPos * 8) + xPos;
+				int redComponent = (int) (( ((binaryInaccuracies[pos]-min) * 1.0) / (max-min)) * 255);
+				img.setRGB(x, y, (new Color(redComponent, 0, 0)).getRGB());
+			}
+		}
+		
+	    try {
+	    	File outputfile = new File("heatmap.png");
+			ImageIO.write(img, "png", outputfile);
+		} catch (IOException e) {e.printStackTrace();}
+		
+	}
+	
+	public void savePack(){
+		PrintWriter writer;
+		try {
+			writer = new PrintWriter(_MESSAGES_SAVE_PATH, "UTF-8");
+			for(String s : messages) writer.println(s);
+			writer.close();
+		}catch (FileNotFoundException e) {e.printStackTrace();} 
+		catch (UnsupportedEncodingException e) {e.printStackTrace();}
+	}
+	
 	public void flush(){
 		messages = new String[_PACK_SIZE];
 		binaryMessages = new String[_PACK_SIZE];
+		binaryInaccuracies = new int[_MESSAGE_LENGTH_BITS];
+		testedAccuracies = 0;
 	}
 	
 	public void build(){
@@ -33,18 +111,21 @@ public class MessagePack {
 	}
 	
 	/**
-	 * Calculates the accuracy from 0-100 of two strings
+	 * Calculates the accuracy from 0-100 of two binary strings.
+	 * Will update the totals in binaryInaccuracies as it runs through the string.
 	 * @param a Original String
 	 * @param b Resultant String
 	 * @return Accuracy b/w a and b [0,100]
 	 */
-	public static double getAccuracy(String a, String b){
+	public double getAccuracy(String a, String b){
+		testedAccuracies ++;
 		if(a.length() == 0) return 0;
 		double similarBits = 0;
 		
 		for(int i = 0; i < a.length(); i ++){
 			if(b.length() - 1 < i) continue;
 			if(a.charAt(i) == b.charAt(i)) similarBits ++;
+			else binaryInaccuracies[i] ++;
 		}
 		
 		return similarBits / a.length() * 100.00;
@@ -73,7 +154,6 @@ public class MessagePack {
 		for(int i = 0; i < _MESSAGE_LENGTH_CHARS; i ++){
 			s += _ALLOWED_CHARACTERS.charAt(rand.nextInt(26)) + "";
 		}
-		System.out.println(s);
 		return s;
 	}
 	
