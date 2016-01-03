@@ -1,5 +1,6 @@
 package com.android.visualmimo;
 
+import android.app.ActivityManager;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.os.AsyncTask;
@@ -8,11 +9,14 @@ import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.Message;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
+import com.qualcomm.vuforia.CameraDevice;
 import com.qualcomm.vuforia.State;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.LoadingDialogHandler;
 
@@ -30,6 +34,7 @@ public class AnalyticsActivity extends VuforiaActivity  implements Callback {
     private volatile boolean takePicture = false;
     private SocketClient socket;
     private Thread socketThread = null;
+    private GestureDetector mGestureDetector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,10 +54,16 @@ public class AnalyticsActivity extends VuforiaActivity  implements Callback {
         }catch(Exception e){e.printStackTrace();}
         vuforiaAppSession.drawOnView(this, mUILayout);
 
+        mGestureDetector = new GestureDetector(this, new GestureListener());
         socket = new SocketClient(serverCon);
         socket.execute();
         socketThread = new Thread(socket, "Socket Thread");
         socketThread.start();
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return mGestureDetector.onTouchEvent(event);
     }
 
     /** Create new MIMOFrame, add to FrameCache. */
@@ -181,6 +192,22 @@ public class AnalyticsActivity extends VuforiaActivity  implements Callback {
                 socketThread.join();
             }
         }catch(Exception e){e.printStackTrace();}
+    }
+
+    /** GestureListener for tap to focus. */
+    private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+        // Used to set autofocus one second after a manual focus is triggered
+        private final Handler autofocusHandler = new Handler();
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            return CameraDevice.getInstance().setFocusMode(CameraDevice.FOCUS_MODE.FOCUS_MODE_TRIGGERAUTO);
+        }
     }
 
 }

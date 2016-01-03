@@ -28,27 +28,13 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.android.visualmimo.persistence.MIMOFrame;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.qualcomm.vuforia.CameraCalibration;
 import com.qualcomm.vuforia.CameraDevice;
-import com.qualcomm.vuforia.Frame;
-import com.qualcomm.vuforia.Image;
-import com.qualcomm.vuforia.ImageTarget;
-import com.qualcomm.vuforia.Matrix44F;
 import com.qualcomm.vuforia.State;
-import com.qualcomm.vuforia.Tool;
-import com.qualcomm.vuforia.Trackable;
-import com.qualcomm.vuforia.TrackableResult;
-import com.qualcomm.vuforia.Vec2F;
-import com.qualcomm.vuforia.Vec3F;
-import com.qualcomm.vuforia.samples.SampleApplication.VuforiaException;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.LoadingDialogHandler;
-
-import java.nio.ByteBuffer;
 
 /**
  * Activity that handles everything: Vuforia, UI.
