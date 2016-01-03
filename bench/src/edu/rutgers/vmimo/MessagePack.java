@@ -9,13 +9,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
 
 public class MessagePack {
 
-	public static final int _PACK_SIZE = 20;
+	public static final int _PACK_SIZE = 25;
 	public static final int _MESSAGE_LENGTH_CHARS = 11;
 	public static final int _MESSAGE_LENGTH_BITS = 80;
 	public Random rand = new Random();
@@ -55,18 +56,23 @@ public class MessagePack {
 		}
 	}
 
-	public void outputInaccuracies(){
+	public void generateMissedBitsReport(File dir){
 		final int _STEP_SIZE = 50;
 		int min = 0;
 		int max = testedAccuracies;
 		
-		System.out.println("MIN: " + min + ", MAX:" + max);
-		
 		//Text based output
+		ArrayList<String> missedBits = new ArrayList<String>();
+		String s = "";
 		for(int i = 0; i < binaryInaccuracies.length; i ++){
-			System.out.print("[" + binaryInaccuracies[i] + "," + ( ((binaryInaccuracies[i]-min) * 1.0) /(max-min)) + "],");
-			if( (i + 1) % 8 == 0 ) System.out.println();
+			s += "[" + binaryInaccuracies[i] + "," + ( ((binaryInaccuracies[i]-min) * 1.0) /(max-min)) + "],";
+			if( (i + 1) % 8 == 0 ){
+				missedBits.add(s);
+				s = "";
+			}
 		}
+		File missedBitsTextFile = ReportUtils.createNewFile(dir, ReportUtils._MISSED_BITS_REPORT_FILE_NAME);
+		ReportUtils.writeToFile(missedBitsTextFile, missedBits);
 		
 		BufferedImage img = new BufferedImage(8 * _STEP_SIZE, 10 * _STEP_SIZE, BufferedImage.TYPE_INT_RGB);
 		for(int x = 0; x < 8 * _STEP_SIZE; x ++){
@@ -80,10 +86,9 @@ public class MessagePack {
 		}
 		
 	    try {
-	    	File outputfile = new File("heatmap.png");
+	    	File outputfile = ReportUtils.createNewFile(dir, ReportUtils._MISSED_BITS_REPORT_IMAGE_NAME);
 			ImageIO.write(img, "png", outputfile);
 		} catch (IOException e) {e.printStackTrace();}
-		
 	}
 	
 	public void savePack(){
@@ -141,7 +146,11 @@ public class MessagePack {
 		  String result = "";
 		  for (byte b : bytes){
 		     int val = b;
-		     for (int i = 1; i < 8; i++){
+		     for (int i = 0; i < 8; i++){
+		    	if(i == 0){
+		    		val <<= 1;
+		    		continue;
+		    	}
 		        result += ((val & 128) == 0 ? 0 : 1);
 		        val <<= 1;
 		     }

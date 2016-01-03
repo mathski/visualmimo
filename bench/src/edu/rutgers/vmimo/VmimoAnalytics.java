@@ -1,11 +1,10 @@
 package edu.rutgers.vmimo;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import javax.swing.JFrame;
@@ -14,9 +13,6 @@ import org.apache.commons.io.FileUtils;
 
 import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
 import uk.co.caprica.vlcj.discovery.NativeDiscovery;
-
-import com.sun.jna.NativeLibrary;
-
 import edu.rutgers.vmimo.socket.SocketConnection;
 
 public class VmimoAnalytics {
@@ -53,19 +49,13 @@ public class VmimoAnalytics {
 		new NativeDiscovery().discover();
 		createDisplayWindow();
 		Thread socketThread = null;
-
+		
 		try{
 			File messagesFile = new File(MessagePack._MESSAGES_SAVE_PATH);
 			messagesFile.createNewFile();
 			messagePack = new MessagePack(messagesFile);
 		}catch(IOException e){e.printStackTrace();}
 		
-		/*for(String binary : messagePack.binaryMessages){
-			messagePack.getAccuracy(binary, messagePack.binaryMessages[0]);
-		}
-		
-		messagePack.outputInaccuracies();
-		*/
 		try{
 			try
 		      {
@@ -130,6 +120,7 @@ public class VmimoAnalytics {
 	 * @param params
 	 */
 	private static void initializeTest(String[] params){
+		long startTime = System.currentTimeMillis() / 1000;
 		if(params.length < 7){
 			System.out.println("Not enough parameters: expected 7, got " + params.length + ".");
 			return;
@@ -137,6 +128,9 @@ public class VmimoAnalytics {
 			System.out.println("No testing device connected.");
 			return;
 		}
+		File reportsFolder = ReportUtils.generateNewReportFolder();
+		ArrayList<String> commandReportLines = new ArrayList<String>();
+		commandReportLines.add("COMMAND: test " + String.join(" ", params));
 		int startingFPS = Integer.parseInt(params[0]);
 		int endingFPS = Integer.parseInt(params[1]);
 		int startingDelta = Integer.parseInt(params[2]);
@@ -151,6 +145,7 @@ public class VmimoAnalytics {
 			for(int delta = startingDelta; delta < endingDelta + deltaStep; delta += deltaStep){
 				double accuracySum = 0.00;
 				for(int currentMessage = 0; currentMessage < messagePack._PACK_SIZE; currentMessage ++){
+					double messageAccuracySum = 0;
 					System.out.println("Current: " + messagePack.binaryMessages[currentMessage]);
 					try {
 						FileUtils.copyURLToFile(new URL("http://vmimo.convex.vision/encode/" + imageID + "/" + messagePack.messages[currentMessage] + 
@@ -164,23 +159,33 @@ public class VmimoAnalytics {
 					String[] options = {":file-caching=300", ":network-caching=300",
 			                ":sout = #transcode{vcodec=x264,vb=800,scale=1,acodec=,fps=" + "" + "}:display :no-sout-rtp-sap :no-sout-standard-sap :ttl=1 :sout-keep"};
 					mediaPlayerComponent.getMediaPlayer().stop();
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e1) {
+						e1.printStackTrace();
+					}
 					mediaPlayerComponent.getMediaPlayer().playMedia("video.webm", options);
 					while(!mediaPlayerComponent.getMediaPlayer().isPlaying()){ //Wait until video actually playing
 						try{Thread.sleep(50);}catch(Exception e){e.printStackTrace();}
 					}
 					for(int image = 0; image < picturesPerMessage; image ++){
 						socket.sendMessage("test=true;imgcount=" + picturesPerMessage);
-						String Message = socket.getNextMessageOrWait();
-						accuracySum += messagePack.getAccuracy(messagePack.binaryMessages[currentMessage], Message);
+						String message = socket.getNextMessageOrWait();
+						messageAccuracySum += messagePack.getAccuracy(messagePack.binaryMessages[currentMessage], message);
 					}
+					accuracySum += messageAccuracySum;
+					commandReportLines.add("Accuracy of '" + messagePack.messages[currentMessage] + "'" + delta + " delta @ " + fps + " FPS: " + ((double) ((int) messageAccuracySum / picturesPerMessage * 100) / 100) + "%");
 				}
+				commandReportLines.add("Accuracy of " + delta + " delta @ " + fps + "FPS: " + ((double) ((int) accuracySum / imagesPerDelta * 100) / 100) + "%");
 				System.out.println("Accuracy of " + delta + " delta @ " + fps + "FPS: " + ((double) ((int) accuracySum / imagesPerDelta * 100) / 100) + "%");
 			}
 		}
 		
 		mediaPlayerComponent.getMediaPlayer().stop();
-		
-		messagePack.outputInaccuracies();
+		commandReportLines.add(0, "RUN TIME: " + ((System.currentTimeMillis() / 1000) - startTime) + " seconds");
+		ReportUtils.writeToFile(ReportUtils.createNewFile(reportsFolder, ReportUtils._REPORT_FILE_NAME), commandReportLines);
+		messagePack.generateMissedBitsReport(reportsFolder);
+		ReportUtils.copyMessagePackToReports(reportsFolder, messagePack);
 	}
 	
 	private static void loadHelpMessages(){
