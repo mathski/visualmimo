@@ -1,11 +1,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.android.visualmimo.MainActivity" >
-    
+
+    <item android:id="@+id/action_whiteboard"
+        android:icon="@drawable/ic_menu_camera"
+        android:title="Whiteboard Demo"
+        android:showAsAction="ifRoom" />
+
+
     <item android:id="@+id/action_save"
-          android:icon="@drawable/ic_menu_camera"
-          android:title="Save Single"
-          android:showAsAction="ifRoom" />
+        android:icon="@drawable/ic_menu_camera"
+        android:title="Save Single"
+        android:showAsAction="ifRoom" />
 
     <item android:id="@+id/action_album"
           android:icon="@android:drawable/picture_frame"
@@ -25,6 +31,12 @@
     
     <item android:id="@+id/action_load_fps"
         android:title="Load FPS"
+        android:showAsAction="never"
+        />
+
+    <item android:id="@+id/action_analytics"
+        android:icon="@android:drawable/picture_frame"
+        android:title="Analytics"
         android:showAsAction="never"
         />
 

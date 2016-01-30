@@ -8,7 +8,7 @@ and other countries. Trademarks of QUALCOMM Incorporated are used with permissio
 package com.qualcomm.vuforia.samples.SampleApplication;
 
 // Used to send back to the activity any error during vuforia processes
-public class SampleApplicationException extends Exception
+public class VuforiaException extends Exception
 {
     
     private static final long serialVersionUID = 2L;
@@ -27,7 +27,7 @@ public class SampleApplicationException extends Exception
     private String mString = "";
     
     
-    public SampleApplicationException(int code, String description)
+    public VuforiaException(int code, String description)
     {
         super(description);
         mCode = code;

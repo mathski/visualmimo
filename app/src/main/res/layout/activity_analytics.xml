@@ -1,0 +1,52 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="com.android.visualmimo.AnalyticsLogin"
+    android:id="@+id/analytics_wrapper">
+
+    <TextView android:text="@string/instructions" android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/instructions" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:ems="10"
+        android:id="@+id/analyt_serverKey"
+        android:layout_below="@+id/instructions"
+        android:layout_marginTop="136dp"
+        android:hint="Server Key (IP:Port)"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignRight="@+id/instructions"
+        android:layout_alignEnd="@+id/instructions" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Submit"
+        android:id="@+id/analyt_submit"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignRight="@+id/analyt_serverKey"
+        android:layout_alignEnd="@+id/analyt_serverKey" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="If you are brought back to this screen after hitting submit, the IP:Port combo couldn't be reached."
+        android:id="@+id/failure_message"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="74dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignRight="@+id/analyt_submit"
+        android:layout_alignEnd="@+id/analyt_submit" />
+
+</RelativeLayout>
