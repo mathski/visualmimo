@@ -1,77 +1,81 @@
+document.body.addEventListener('touchmove', function(event) {
+    event.preventDefault();
+}, false); 
+
 var socket = io();
 
 var room = 0;
 
 socket.emit('joinRoom', {room: room});
 
-$('#nes-a').mousedown(function() {
+document.getElementById('nes-a').addEventListener('touchstart', function(event) {
     socket.emit('keyDown', {room: room, keyCode: 88});
 });
 
-$('#nes-a').mouseup(function() {
+document.getElementById('nes-a').addEventListener('touchend', function(event) {
     socket.emit('keyUp', {room: room, keyCode: 88});
 });
 
 
-$('#nes-b').mousedown(function() {
+document.getElementById('nes-b').addEventListener('touchstart', function(event) {
     socket.emit('keyDown', {room: room, keyCode: 90});
 });
 
-$('#nes-b').mouseup(function() {
+document.getElementById('nes-b').addEventListener('touchend', function(event) {
     socket.emit('keyUp', {room: room, keyCode: 90});
 });
 
-$('#nes-up').mousedown(function() {
+document.getElementById('nes-up').addEventListener('touchstart', function(event) {
     socket.emit('keyDown', {room: room, keyCode: 38});
 });
 
-$('#nes-up').mouseup(function() {
+document.getElementById('nes-up').addEventListener('touchend', function(event) {
     socket.emit('keyUp', {room: room, keyCode: 38});
 });
 
-$('#nes-down').mousedown(function() {
+document.getElementById('nes-down').addEventListener('touchstart', function(event) {
     socket.emit('keyDown', {room: room, keyCode: 40});
 });
 
-$('#nes-down').mouseup(function() {
+document.getElementById('nes-down').addEventListener('touchend', function(event) {
     socket.emit('keyUp', {room: room, keyCode: 40});
 });
 
-$('#nes-left').mousedown(function() {
+document.getElementById('nes-left').addEventListener('touchstart', function(event) {
     socket.emit('keyDown', {room: room, keyCode: 37});
 });
 
-$('#nes-left').mouseup(function() {
+document.getElementById('nes-left').addEventListener('touchend', function(event) {
     socket.emit('keyUp', {room: room, keyCode: 37});
 });
 
 
 
-$('#nes-right').mousedown(function() {
+document.getElementById('nes-right').addEventListener('touchstart', function(event) {
     socket.emit('keyDown', {room: room, keyCode: 39});
 });
 
-$('#nes-right').mouseup(function() {
+document.getElementById('nes-right').addEventListener('touchend', function(event) {
     socket.emit('keyUp', {room: room, keyCode: 39});
 });
 
 
 
-$('#nes-start').mousedown(function() {
+document.getElementById('nes-start').addEventListener('touchstart', function(event) {
     socket.emit('keyDown', {room: room, keyCode: 13});
 });
 
-$('#nes-start').mouseup(function() {
+document.getElementById('nes-start').addEventListener('touchend', function(event) {
     socket.emit('keyUp', {room: room, keyCode: 13});
 });
 
 
 
 
-$('#nes-select').mousedown(function() {
+document.getElementById('nes-select').addEventListener('touchstart', function(event) {
     socket.emit('keyDown', {room: room, keyCode: 17});
 });
 
-$('#nes-select').mouseup(function() {
+document.getElementById('nes-select').addEventListener('touchend', function(event) {
     socket.emit('keyUp', {room: room, keyCode: 17});
 });
