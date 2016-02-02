@@ -69,3 +69,6 @@ app/src/main/obj/
 app/src/main/libs/armeabi-v7a/libndk1.so
 
 */node_modules/
+
+matlab/*.avi
+*.nes
