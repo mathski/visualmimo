@@ -72,3 +72,4 @@ app/src/main/libs/armeabi-v7a/libndk1.so
 
 matlab/*.avi
 *.nes
+*.idea/

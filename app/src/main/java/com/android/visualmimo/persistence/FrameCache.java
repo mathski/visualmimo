@@ -14,7 +14,7 @@ public class FrameCache {
 
     private static FrameCache singleton;
     private final ReentrantReadWriteLock mRWLock;
-    private static final int BUFFER_SIZE = 4;
+    private static final int BUFFER_SIZE = 6;
     private LinkedList<MIMOFrame> buffer;
     private volatile boolean changed;
 

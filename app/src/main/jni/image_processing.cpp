@@ -93,8 +93,8 @@ extern "C" {
     }
   }
 
-  void processFrames(Mat matImages[], int width, int height, unsigned char *message,
-                     int width_blocks, int height_blocks, float corners[][8]) {
+  void processFrames(Mat (&matImages)[NUM_FRAMES], int width, int height, unsigned char *message,
+                     int width_blocks, int height_blocks, float (&corners)[NUM_FRAMES][8]) {
     // corners is an array of six arrays of eight corners, x y
 
     char strbuff[80];
@@ -123,7 +123,6 @@ extern "C" {
         cv::Mat diffImg;
         subtract(targets[i], targets[k], diffImg);
         sprintf(strbuff, "%d - %d", i, k);
-        // imshow(strbuff, diffImg);
 
         int diff = abs(ins[i] - ins[k]);
         if (diff > bestDiff) {
@@ -137,7 +136,10 @@ extern "C" {
           sprintf(strbuff, "checking parity on %d-%d", ii, kk);
           debug_log_print(strbuff);
           subtract(targets[ii], targets[kk], diffImg);
+
+          #ifndef ON_DEVICE
           imshow(strbuff, diffImg);
+          #endif
 
           if (isParityMismatch(targets[ii], targets[kk], width, height, width_blocks, height_blocks)) {
             continue;
@@ -153,8 +155,10 @@ extern "C" {
     sprintf(strbuff, "NDK:LC: %d and %d", best1 + 1, best2 + 1);
     debug_log_print(strbuff);
 
+    #ifndef ON_DEVICE
     imshow("best1", targets[best1]);
     imshow("best2", targets[best2]);
+    #endif
 
 
     // Histogram equalization.
@@ -165,9 +169,14 @@ extern "C" {
     // Subtract, overwrite first.
     subtract(targets[best1], targets[best2], targets[best1]);
 
+    #ifndef ON_DEVICE
     imshow("subtract", targets[best1]);
+    #endif
 
     extractMessage(targets[best1], message, width, height, width_blocks, height_blocks);
+
+    #ifndef ON_DEVICE
     waitKey(0);
+    #endif
   }
 }
