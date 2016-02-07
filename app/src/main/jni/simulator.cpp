@@ -28,7 +28,7 @@ int main(int argv, char **argc) {
 
 	int width_blocks = 10;
 	int height_blocks = 8;
-	int num_blocks = width_blocks * height_blocks;
+	int num_blocks = width_blocks * height_blocks - 4;
 
   /* single frame corners *
      float c0x1 = 280.267365;

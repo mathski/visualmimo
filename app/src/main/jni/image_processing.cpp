@@ -16,7 +16,7 @@ extern "C" {
   void extractMessage(Mat &image, unsigned char *message,
                       int width, int height,
                       int width_blocks, int height_blocks) {
-    unsigned char message_buff[width_blocks * height_blocks - 4];
+    unsigned char message_buff[width_blocks * height_blocks];
     int block_width = width / width_blocks;
     int block_height = height / height_blocks;
 	
@@ -28,12 +28,6 @@ extern "C" {
     int k = 0;
     for (int i = 0; i < height; i += block_height) {
       for (int j = 0; j < width; j += block_width) {
-        // Skip four corners (parity bits)
-        if ((i == 0 && (j == 0 || j == width-block_width))
-            || (i == height-block_height && (j == 0 || j == width-block_width))) {
-          continue;
-        }
-
         // Get region of interest
         Mat block = image(Rect(i, j, block_height, block_width));
         Scalar m = mean(block);
@@ -44,8 +38,12 @@ extern "C" {
     // reorder message correctly
     k = 0;
     for (int i = 0; i < height_blocks; i++) {
-			for (int j = width_blocks; j >= 0; j--) {
-        message[k++] = message_buff[i * 10 + j];
+			for (int j = width_blocks - 1; j >= 0; j--) {
+        // Skip four corners (parity bits)
+        if (!(i == 0 && (j == 0 || j == width_blocks - 1))
+            && !(i == height_blocks - 1 && (j == 0 || j == width_blocks - 1))) {
+          message[k++] = message_buff[i * width_blocks + j];
+        }
 			}
 		}
   }
