@@ -59,13 +59,13 @@ extern "C" {
 
 
     #ifdef WRITE_FRAMES
+    char strbuff[800];
     // Save to disk for simulator use
     for (int i = 0; i < NUM_FRAMES; i++) {
       sprintf(strbuff, "/sdcard/vmimo%d.bmp", i);
       imwrite(strbuff, matImages[i]);
     }
 
-    char strbuff[800];
     for (int i = 0; i < NUM_FRAMES; i++) {
       sprintf(strbuff, "{\n%f,\n%f,\n%f,\n%f,\n%f,\n%f,\n%f,\n%f\n},",
               corners[i][0], corners[i][1], corners[i][2], corners[i][3],

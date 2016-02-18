@@ -14,21 +14,11 @@ public class MessageUtils {
 				if ((i == 0 && (j == 0 || j == 9)) || (i == 7 && (j == 0 || j == 9))) {
 					out.print("S ");
 				} else {
-					out.print(pattern[k++] ? ". " : "X ");
+					out.print(pattern[k++] ? "X " : ". ");
 				}
 			}
 			out.println();
 		}
-//		for (int i = 0; i < 8; i++) {
-//			for (int j = 9; j >= 0; j--) {
-//				boolean b = pattern[i * 10 + j];
-//				if (b)
-//					out.print(". ");
-//				else
-//					out.print("X ");
-//			}
-//			out.println();
-//		}
 	}
 	
 	/**
@@ -37,17 +27,8 @@ public class MessageUtils {
 	public static void printArray(boolean[] pattern, PrintStream out) {
 		out.print("MESSAGE MATLAB: [");
 		for (boolean b : pattern) {
-			out.print(b ? "0, " : "1, ");
+			out.print(b ? "1, " : "0, ");
 		}
-//		for (int i = 0; i < 8; i++) {
-//			for (int j = 9; j >= 0; j--) {
-//				boolean b = pattern[i * 10 + j];
-//				if (b)
-//					out.print("0, ");
-//				else
-//					out.print("1, ");
-//			}
-//		}
 		out.println("];");
 	}
 	
@@ -60,27 +41,13 @@ public class MessageUtils {
 		StringBuffer messageBuffer = new StringBuffer();
 		StringBuffer sb = new StringBuffer();
 		for (boolean b : pattern) {
-			sb.append(b ? "0" : "1");
+			sb.append(b ? "1" : "0");
 			if (sb.length() == 7) {
 				messageBuffer.append((char) Integer.parseInt(sb.toString(), 2));
 				sb = new StringBuffer();
 			}
 		}
 
-//		for (int i = 0; i < 8; i++) {
-//			for (int j = 9; j >= 0; j--) {
-//				boolean b = pattern[i * 10 + j];
-//				if(b)
-//					sb.append("0");
-//				else
-//					sb.append("1");
-//				if (sb.length() == 7) {
-//					messageBuffer.append((char)Integer.parseInt(sb.toString(), 2));
-//					sb = new StringBuffer();
-//				}
-//			}
-//		}
-		
 		return messageBuffer.toString();
 	}
 
@@ -92,17 +59,8 @@ public class MessageUtils {
 	public static String parseMessageToBinary(boolean[] pattern) {
 		StringBuffer sb = new StringBuffer();
 		for (boolean b : pattern) {
-			sb.append(b ? "0" : "1");
+			sb.append(b ? "1" : "0");
 		}
-//		for (int i = 0; i < 8; i++) {
-//			for (int j = 9; j >= 0; j--) {
-//				boolean b = pattern[i * 10 + j];
-//				if(b)
-//					sb.append("0");
-//				else
-//					sb.append("1");
-//			}
-//		}
 
 		return sb.toString();
 	}
@@ -110,7 +68,7 @@ public class MessageUtils {
 	public static double checkAccuracy(boolean[] pattern) {
 		
 		//reference is "abcdefghij"
-		boolean[] reference = {false, false, true, true, true, true, false, false, false, true, true, true, false, true, false, false, true, true, true, false, false, false, false, true, true, false, true, true, false, false, true, true, false, true, false, false, false, true, true, false, false, true, false, false, true, true, false, false, false, false, false, true, false, true, true, true, false, false, true, false, true, true, false, false, false, true, false, true, false, true, false, false, false, false, false, false, false};
+		boolean[] reference = {true,true,false,false,false,false,true,true,true,false,false,false,true,false,true,true,false,false,false,true,true,true,true,false,false,true,false,false,true,true,false,false,true,false,true,true,true,false,false,true,true,false,true,true,false,false,true,true,true,true,true,false,true,false,false,false,true,true,false,true,false,false,true,true,true,false,true,false,true,false,false,false,false,false,false,false};
 
 		double correct = 0;
 		for (int i = 0; i < pattern.length; i++) {

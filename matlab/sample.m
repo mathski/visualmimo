@@ -33,7 +33,7 @@ img=hsv2rgb(img);
 % img=uint8(img*255);
 
 
-if ~exist('message', 'var')
+if ~exist('messages', 'var')
     messages = {'abcdefghij', 'lmnopqrstu'};
 end
 
@@ -41,7 +41,7 @@ frames = [];
 totalmessage = '';
 for i = 1:length(messages);
     totalmessage = strcat(totalmessage, messages{i});
-    message = asciiMessage(messages{i}, 80, i-1);
+    message = asciiMessage(messages{i}, 80);
     
     % sync_bit for in-progress multiframe implementation
     parity_bit = mod(i, 2);

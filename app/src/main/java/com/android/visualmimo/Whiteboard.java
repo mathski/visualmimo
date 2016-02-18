@@ -29,8 +29,8 @@ public class Whiteboard extends Activity {
 
     enum WhiteboardTool{
 
-        PENCIL(R.drawable.pencil, 4, 0, "Draw"),
-        ERASER(R.drawable.eraser, 4, 1, "Eraser");
+        PENCIL(R.drawable.ic_launcher, 4, 0, "Draw"),
+        ERASER(R.drawable.ic_launcher, 4, 1, "Eraser");
 
         public int x, y, icon, height = -1, width = -1;
         public String name;
@@ -71,9 +71,9 @@ public class Whiteboard extends Activity {
 
         String imageId = getIntent().getStringExtra("id");
         if("15".equals(imageId)){
-            d = getResources().getDrawable(R.drawable.fifteen);
+            d = getResources().getDrawable(R.drawable.ic_launcher);
         }else if("5".equals(imageId)){
-            d = getResources().getDrawable(R.drawable.five);
+            d = getResources().getDrawable(R.drawable.ic_launcher);
         }else return;
 
         board = new Board(this, d, size);

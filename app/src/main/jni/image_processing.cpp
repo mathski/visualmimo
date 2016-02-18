@@ -32,6 +32,15 @@ extern "C" {
         Mat block = image(Rect(i, j, block_height, block_width));
         Scalar m = mean(block);
         message_buff[k++] = (m[0] + m[1] + m[2] > cutoff);
+
+#ifndef ON_DEVICE
+        // char strbuff[80];
+        // sprintf(strbuff, "%d", (m[0] + m[1] + m[2] > cutoff));
+        // debug_log_print(strbuff);
+        // imshow("patch", block);
+        // waitKey(0);
+#endif
+
       }
     }
 
@@ -58,7 +67,7 @@ extern "C" {
 
     cv::Mat diff, block;
     cv::Scalar m;
-    subtract(img1, img2, diff);
+    cv::absdiff(img1, img2, diff);
 
     // Threshold for message extraction is average intensity of difference.
     m = mean(diff);
@@ -81,8 +90,7 @@ extern "C" {
     m = mean(block);
     bool bottomleft = (m[0] + m[1] + m[2] > cutoff);
 
-    if (topright && bottomright && topleft && bottomleft
-        || !topright && !bottomright && !topleft && !bottomleft) {
+    if (!topright && !bottomright && !topleft && !bottomleft) {
       debug_log_print("Parity bits are valid.");
       return false;
     } else {
@@ -135,9 +143,9 @@ extern "C" {
           debug_log_print(strbuff);
           subtract(targets[ii], targets[kk], diffImg);
 
-          #ifndef ON_DEVICE
-          imshow(strbuff, diffImg);
-          #endif
+#ifndef ON_DEVICE
+          // imshow(strbuff, diffImg);
+#endif
 
           if (isParityMismatch(targets[ii], targets[kk], width, height, width_blocks, height_blocks)) {
             continue;
@@ -153,10 +161,10 @@ extern "C" {
     sprintf(strbuff, "NDK:LC: %d and %d", best1 + 1, best2 + 1);
     debug_log_print(strbuff);
 
-    #ifndef ON_DEVICE
+#ifndef ON_DEVICE
     imshow("best1", targets[best1]);
     imshow("best2", targets[best2]);
-    #endif
+#endif
 
 
     // Histogram equalization.
@@ -167,14 +175,14 @@ extern "C" {
     // Subtract, overwrite first.
     subtract(targets[best1], targets[best2], targets[best1]);
 
-    #ifndef ON_DEVICE
+#ifndef ON_DEVICE
     imshow("subtract", targets[best1]);
-    #endif
+#endif
 
     extractMessage(targets[best1], message, width, height, width_blocks, height_blocks);
 
-    #ifndef ON_DEVICE
+#ifndef ON_DEVICE
     waitKey(0);
-    #endif
+#endif
   }
 }
