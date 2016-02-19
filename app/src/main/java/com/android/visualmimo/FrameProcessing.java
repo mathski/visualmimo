@@ -6,6 +6,7 @@ import android.util.Pair;
 
 import com.android.visualmimo.persistence.FrameCache;
 import com.android.visualmimo.persistence.MIMOFrame;
+import com.android.visualmimo.persistence.MessageCache;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public class FrameProcessing {
     }
 
     /** NDK: subtracts frame1 from frame2, overwriting frame1 */
-    private static native boolean[] frameSubtraction(
+    private static native Object frameSubtraction(
             byte[][] frames,
             int width,
             int height,
@@ -67,7 +68,12 @@ public class FrameProcessing {
                 }
 
                 // NDK call: handles subtraction and saving
-                boolean[] message = frameSubtraction(frameArray, imageWidth, imageHeight, corners);
+                NDKResult ndkResult = (NDKResult) frameSubtraction(
+                        frameArray,
+                        imageWidth,
+                        imageHeight,
+                        corners);
+                boolean[] message = ndkResult.message;
 
                 MessageUtils.printGrid(message, System.out);
                 MessageUtils.printArray(message, System.out);
@@ -76,6 +82,13 @@ public class FrameProcessing {
                 double accuracy = MessageUtils.checkAccuracy(message);
                 System.out.println(ascii);
                 System.out.println(accuracy);
+                System.out.println("Parity: " + (ndkResult.isOddFrame ? "odd" : "even"));
+
+                MessageCache cache = MessageCache.getInstance();
+                cache.addMessage(ndkResult);
+                System.out.println("MessageCache.isReady(): " + cache.isReady());
+                System.out.println(MessageUtils.parseMessage(cache.assemblePattern()));
+                MessageUtils.printArray(cache.assemblePattern(), System.out);
 
                 // update UI
                 if (!benchingInProgress) {

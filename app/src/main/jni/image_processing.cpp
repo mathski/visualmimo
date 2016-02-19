@@ -99,7 +99,7 @@ extern "C" {
     }
   }
 
-  void processFrames(Mat (&matImages)[NUM_FRAMES], int width, int height, unsigned char *message,
+  bool processFrames(Mat (&matImages)[NUM_FRAMES], int width, int height, unsigned char *message,
                      int width_blocks, int height_blocks, float (&corners)[NUM_FRAMES][8]) {
     // corners is an array of six arrays of eight corners, x y
 
@@ -122,8 +122,17 @@ extern "C" {
     int best2 = 0;
     int bestDiff = 0;
 
+    float avgParityIns = 0;
+    int block_width = width / width_blocks;
+    int block_height = height / height_blocks;
+	
     // Find best pair of frames: NUM_FRAMES nCr 2 choices
     for (int i = 0; i < NUM_FRAMES - 1; i++) {
+
+      // Running average of intensity in top right block, for parity
+      m = mean(targets[i](Rect(0, 0, block_height, block_width)));
+      avgParityIns += m[0] + m[1] + m[2];
+
       for (int k = i + 1; k < NUM_FRAMES; k++) {
 
         cv::Mat diffImg;
@@ -158,7 +167,14 @@ extern "C" {
       }
     }
 
+    // message is odd if parity bits are on
+    avgParityIns /= NUM_FRAMES;
+    m = mean(targets[best1](Rect(0, 0, block_height, block_width)));
+    bool isOddFrame = (m[0] + m[1] + m[2]) > avgParityIns;
+
     sprintf(strbuff, "NDK:LC: %d and %d", best1 + 1, best2 + 1);
+    debug_log_print(strbuff);
+    sprintf(strbuff, "NDK:LC: parity: %s", isOddFrame ? "odd" : "even");
     debug_log_print(strbuff);
 
 #ifndef ON_DEVICE
@@ -184,5 +200,7 @@ extern "C" {
 #ifndef ON_DEVICE
     waitKey(0);
 #endif
+
+    return isOddFrame;
   }
 }

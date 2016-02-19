@@ -21,7 +21,7 @@ extern "C" {
 	 * Determines two frames with most differing average intensity.
    * Subtracts frame2 from frame1, overwriting frame1
    */
-  JNIEXPORT jbooleanArray Java_com_android_visualmimo_FrameProcessing_frameSubtraction(JNIEnv *env, jobject obj,
+  JNIEXPORT jobject Java_com_android_visualmimo_FrameProcessing_frameSubtraction(JNIEnv *env, jobject obj,
         jobjectArray frames, jint width, jint height, jobjectArray cornersArray)
   {
 
@@ -50,7 +50,7 @@ extern "C" {
     int num_blocks = width_blocks * height_blocks - 4; // - 4 for the four corners
 
     jboolean message[num_blocks];
-    processFrames(matImages, width, height, message, width_blocks, height_blocks, corners);
+    jboolean isOddFrame = processFrames(matImages, width, height, message, width_blocks, height_blocks, corners);
 
 
     // return message
@@ -77,6 +77,10 @@ extern "C" {
     debug_log_print(strbuff);
     #endif
 
+    jclass cls = env->FindClass("com/android/visualmimo/NDKResult");
+    jmethodID methodId = env->GetMethodID(cls, "<init>", "(Z[Z)V"); //[Z for bool array, Z for bool
+    jobject ret = env->NewObject(cls, methodId, isOddFrame, message_jboolean);
+
     //TODO figure out if this causes crashes
     // last arg: 0 -> copy array back, JNI_ABBORT -> don't copy
     // env->ReleaseByteArrayElements(frame1, f1, JNI_ABORT);
@@ -84,6 +88,6 @@ extern "C" {
     // env->ReleaseByteArrayElements(frame3, f2, JNI_ABORT);
     // env->ReleaseByteArrayElements(frame4, f2, JNI_ABORT);
 
-    return message_jboolean;
+    return ret;
   }
 }
