@@ -1,4 +1,5 @@
 #include <string.h>
+#include <limits.h>
 #include <cv.h>
 #include <highgui.h>
 
@@ -99,6 +100,28 @@ extern "C" {
     }
   }
 
+  /**
+   * Sums intensity of parity bits for given image.
+   */
+  int getParityIntensities(Mat& image, int width, int height, int width_blocks, int height_blocks) {
+    int ins = 0;
+    cv::Scalar m;
+
+    int block_width = width / width_blocks;
+    int block_height = height / height_blocks;
+
+    m = mean(image(Rect(0, 0, block_height, block_width)));
+    ins += m[0] + m[1] + m[2];
+    m = mean(image(Rect(0, width-block_width, block_height, block_width)));
+    ins += m[0] + m[1] + m[2];
+    m = mean(image(Rect(height-block_height, 0, block_height, block_width)));
+    ins += m[0] + m[1] + m[2];
+    m = mean(image(Rect(height-block_height, width-block_width, block_height, block_width)));
+    ins += m[0] + m[1] + m[2];
+    
+    return ins;
+  }
+
   bool processFrames(Mat (&matImages)[NUM_FRAMES], int width, int height, unsigned char *message,
                      int width_blocks, int height_blocks, float (&corners)[NUM_FRAMES][8]) {
     // corners is an array of six arrays of eight corners, x y
@@ -122,16 +145,23 @@ extern "C" {
     int best2 = 0;
     int bestDiff = 0;
 
-    float avgParityIns = 0;
     int block_width = width / width_blocks;
     int block_height = height / height_blocks;
+
+    // Track highest and lowest corner intensities to determine parity.
+    int max_ins = INT_MIN;
+    int min_ins = INT_MAX;
 	
     // Find best pair of frames: NUM_FRAMES nCr 2 choices
     for (int i = 0; i < NUM_FRAMES - 1; i++) {
 
-      // Running average of intensity in top right block, for parity
-      m = mean(targets[i](Rect(0, 0, block_height, block_width)));
-      avgParityIns += m[0] + m[1] + m[2];
+      int pIns = getParityIntensities(targets[i], width, height, width_blocks, height_blocks);
+      if (pIns > max_ins) {
+        max_ins = pIns;
+      }
+      if (pIns < min_ins) {
+        min_ins = pIns;
+      }
 
       for (int k = i + 1; k < NUM_FRAMES; k++) {
 
@@ -168,9 +198,11 @@ extern "C" {
     }
 
     // message is odd if parity bits are on
-    avgParityIns /= NUM_FRAMES;
-    m = mean(targets[best1](Rect(0, 0, block_height, block_width)));
-    bool isOddFrame = (m[0] + m[1] + m[2]) > avgParityIns;
+    float avgParityIns = (max_ins + min_ins) / 2;
+
+    int pIns = getParityIntensities(targets[best1], width, height, width_blocks, height_blocks);
+
+    bool isOddFrame = pIns > avgParityIns;
 
     sprintf(strbuff, "NDK:LC: %d and %d", best1 + 1, best2 + 1);
     debug_log_print(strbuff);

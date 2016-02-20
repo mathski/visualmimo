@@ -21,8 +21,8 @@ extern "C" {
 	 * Determines two frames with most differing average intensity.
    * Subtracts frame2 from frame1, overwriting frame1
    */
-  JNIEXPORT jobject Java_com_android_visualmimo_FrameProcessing_frameSubtraction(JNIEnv *env, jobject obj,
-        jobjectArray frames, jint width, jint height, jobjectArray cornersArray)
+  JNIEXPORT jobject Java_com_android_visualmimo_FrameProcessing_frameSubtraction(JNIEnv *env,
+      jobject obj, jobjectArray frames, jint width, jint height, jobjectArray cornersArray)
   {
 
     Mat matImages[NUM_FRAMES];
@@ -50,7 +50,14 @@ extern "C" {
     int num_blocks = width_blocks * height_blocks - 4; // - 4 for the four corners
 
     jboolean message[num_blocks];
-    jboolean isOddFrame = processFrames(matImages, width, height, message, width_blocks, height_blocks, corners);
+    jboolean isOddFrame = processFrames(
+        matImages,
+        width,
+        height,
+        message,
+        width_blocks,
+        height_blocks,
+        corners);
 
 
     // return message
