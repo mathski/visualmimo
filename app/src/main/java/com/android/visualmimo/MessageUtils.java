@@ -34,6 +34,7 @@ public class MessageUtils {
 	
 	/**
 	 * Extracts an ASCII message from the pattern.
+	 * TODO: doesn't work for multimessages
 	 * @param pattern
 	 * @return
 	 */

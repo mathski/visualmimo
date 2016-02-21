@@ -28,6 +28,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.android.visualmimo.persistence.MessageCache;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -49,6 +50,9 @@ public class MainActivity extends VuforiaActivity implements Callback{
 	private boolean benchingInProgress = false;
 	private boolean recordingMode = false;
 	private boolean photoalbumMode = false, whiteboardDemo = false;
+
+	/** Counts how many frames have elapsed since last NDK call. */
+	private int frameCounter = 0;
 
 	private GestureDetector mGestureDetector;
 
@@ -135,8 +139,18 @@ public class MainActivity extends VuforiaActivity implements Callback{
 	/** Create new MIMOFrame, add to FrameCache. */
 	public void onQCARUpdate(State state) {
 		benchFPS();
-		onQCARUpdate(state, recordingMode || (benchingInProgress && !idleBenchMode));
-		if(saveCount > NUM_SAVES){
+
+		NUM_SAVES = MessageCache.NUM_MESSAGES
+				- MessageCache.getInstance().size()
+				+ saveCount;
+
+		if (recordingMode)
+			frameCounter++;
+
+		onQCARUpdate(state, ((frameCounter % 20 == 0) && recordingMode)
+				|| (benchingInProgress && !idleBenchMode));
+
+		if (MessageCache.getInstance().isReady()) {
 			saveCount = 0;
 			recordingMode = false;
 		}
@@ -182,18 +196,6 @@ public class MainActivity extends VuforiaActivity implements Callback{
 				return true;
 			case R.id.action_album:
 				handleDemoButton();
-				return true;
-			case R.id.action_burst:
-				if (burstMode) {
-					showToast("Disabling Burst Mode");
-					NUM_SAVES = 1;
-					burstMode = false;
-				}
-				else {
-					showToast("Enabling Burst Mode (" + BURST_SAVES + ")");
-					NUM_SAVES = BURST_SAVES;
-					burstMode = true;
-				}
 				return true;
 
 			case R.id.action_idle_fps:

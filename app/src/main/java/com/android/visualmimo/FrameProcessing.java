@@ -29,17 +29,11 @@ public class FrameProcessing {
     public static void processFrames(
             FrameCache cache,
             Handler.Callback callback,
-            final int saveCount,
             final boolean benchingInProgress,
-            final boolean burstMode,
-            final int numSaves,
             final int imageWidth,
-            final int imageHeight,
-            final double[] accuracies) {
+            final int imageHeight) {
         // this handler will update the UI with the message below
         final Handler handler = new Handler(callback);
-
-        final int index = saveCount;
 
         final List<MIMOFrame> frames = cache.getBufferFrames();
 
@@ -85,34 +79,16 @@ public class FrameProcessing {
                 System.out.println("Parity: " + (ndkResult.isOddFrame ? "odd" : "even"));
 
                 MessageCache cache = MessageCache.getInstance();
-                cache.addMessage(ndkResult);
+                boolean cacheAccepted = cache.addMessage(ndkResult);
                 System.out.println("MessageCache.isReady(): " + cache.isReady());
                 System.out.println(MessageUtils.parseMessage(cache.assemblePattern()));
                 MessageUtils.printArray(cache.assemblePattern(), System.out);
 
-                // update UI
+                // update UI (doesn't work)
                 if (!benchingInProgress) {
-                    if (burstMode) {
-                        if (index < numSaves) {
-                            accuracies[index - 1] = accuracy;
-                        }
-
-                        if (index == numSaves) {
-                            double average = 0;
-                            for (double a : accuracies) {
-                                average += a;
-                            }
-                            average /= accuracies.length;
-
-                            Message msg = new Message();
-                            msg.obj = new ExtractedMessage(average, "average", message);
-                            handler.sendMessage(msg);
-                        }
-                    } else {
-                        Message msg = new Message();
-                        msg.obj = new ExtractedMessage(accuracy, ascii, message);
-                        handler.sendMessage(msg);
-                    }
+                    Message msg = new Message();
+                    msg.obj = new ExtractedMessage(accuracy, ascii, message);
+                    handler.sendMessage(msg);
                 }
             }
         }).start();

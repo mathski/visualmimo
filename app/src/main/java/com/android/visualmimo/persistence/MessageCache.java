@@ -14,7 +14,7 @@ public class MessageCache {
      * A hardcoded number of messages.
      * TODO: switch to some known "start" pattern to support variable length.
      */
-    private final int NUM_MESSAGES = 2;
+    public static final int NUM_MESSAGES = 2;
 
     private boolean expectingOdd = true;
 
@@ -38,25 +38,34 @@ public class MessageCache {
      * TODO: instead of dropping a mismatch, assume we missed a single message and leave a gap for it.
      * Next loop around, try to fill gap.
      * @param result and NDKResult returned from the NDK.
+     * @return true if successfully added
      */
-    public void addMessage(NDKResult result) {
+    public boolean addMessage(NDKResult result) {
         if (expectingOdd != result.isOddFrame) {
             System.err.println("Was expecting " + (expectingOdd ? "odd" : "even")
                     + " frame. Dropping.");
-            return;
+            return false;
+        }
+        if (isReady()) {
+            System.err.println("Message cache already ready. Dropping.");
+            return false;
         }
 
         expectingOdd = !expectingOdd;
-        messages.add(result);
+        return messages.add(result);
     }
 
     /** Returns true if all expected messages have been collected. */
     public boolean isReady() {
-        return NUM_MESSAGES == messages.size();
+        return NUM_MESSAGES <= messages.size();
     }
 
     /** Spits out total contents of list. */
     public boolean[] assemblePattern() {
+        if (messages.size() == 0) {
+            return new boolean[0];
+        }
+
         boolean[] pattern = new boolean[messages.size() * messages.getFirst().message.length];
 
         int pos = 0;
@@ -66,6 +75,11 @@ public class MessageCache {
         }
 
         return pattern;
+    }
+
+    /** Returns number of accepted messages in cache. */
+    public int size() {
+        return messages.size();
     }
 
 }

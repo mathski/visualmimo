@@ -71,7 +71,7 @@ public class FrameCache {
     public List<MIMOFrame> getBufferFrames() {
     	while (buffer.size() < BUFFER_SIZE) {
     		//BUSY LOCK: BAD
-    		System.out.println("Attempted to get frames before buffer filled.");
+    		System.err.println("Attempted to get frames before buffer filled.");
     	}
     	
     	mRWLock.readLock().lock();
