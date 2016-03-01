@@ -6,8 +6,8 @@ function [ message ] = sample(imageId, messages, alpha, fps, height, width)
 % message: optional cell array of strings giving message to embed
 %          defaults to {'abcdefghij'}
 
-if ~exist('alpha', 'var'), alpha = 10; end
-if ~exist('fps', 'var'), fps = 10; end
+if ~exist('alpha', 'var'), alpha = 40; end
+if ~exist('fps', 'var'), fps = 14; end
 if ~exist('height', 'var'), height = 448; end
 if ~exist('width', 'var'), width = 560; end
 
@@ -34,14 +34,14 @@ img=hsv2rgb(img);
 
 
 if ~exist('messages', 'var')
-    messages = {'abcdefghij', 'lmnopqrstu'};
+    messages = {'abcabcabc', 'defdefdef'};
 end
 
 frames = [];
 totalmessage = '';
 for i = 1:length(messages);
     totalmessage = strcat(totalmessage, messages{i});
-    message = asciiMessage(messages{i}, 80);
+    message = addIndexToPattern(asciiMessage(messages{i}), i-1);
     
     % sync_bit for in-progress multiframe implementation
     parity_bit = mod(i, 2);

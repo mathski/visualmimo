@@ -1,12 +1,15 @@
-function [message] = asciiMessage(string, max_length)
+function [message] = asciiMessage(string)
 % encodes a string as 1's and 0's, padded with zeros to a binary encoded
+% leaves room for 4 parity bits and 12 index bits (enough for three ascii
+% characters in triplicate).
+max_length = 80 - 4 - 12;
 message = [];
 for i = 1:length(string)
     message = [message, dec2bin(uint8(string(i))) - '0'];
 end
 
-if max_length < length(message) + 4;
-    error('Message and index are too long')
+if max_length < length(message);
+    error('Message is too long')
 end
 
 sync_bit = 0;
