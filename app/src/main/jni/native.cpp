@@ -50,7 +50,7 @@ extern "C" {
     int num_blocks = width_blocks * height_blocks - 4; // - 4 for the four corners
 
     jboolean message[num_blocks];
-    jboolean isOddFrame = processFrames(
+    jint index = processFrames(
         matImages,
         width,
         height,
@@ -85,8 +85,8 @@ extern "C" {
     #endif
 
     jclass cls = env->FindClass("com/android/visualmimo/NDKResult");
-    jmethodID methodId = env->GetMethodID(cls, "<init>", "(Z[Z)V"); //[Z for bool array, Z for bool
-    jobject ret = env->NewObject(cls, methodId, isOddFrame, message_jboolean);
+    jmethodID methodId = env->GetMethodID(cls, "<init>", "(I[Z)V"); //[Z for bool array, I for int
+    jobject ret = env->NewObject(cls, methodId, index, message_jboolean);
 
     //TODO figure out if this causes crashes
     // last arg: 0 -> copy array back, JNI_ABBORT -> don't copy

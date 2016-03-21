@@ -76,7 +76,7 @@ public class FrameProcessing {
                 double accuracy = MessageUtils.checkAccuracy(message);
                 System.out.println(ascii);
                 System.out.println(accuracy);
-                System.out.println("Parity: " + (ndkResult.isOddFrame ? "odd" : "even"));
+                System.out.println("Index: " + ndkResult.index);
 
                 MessageCache cache = MessageCache.getInstance();
                 boolean cacheAccepted = cache.addMessage(ndkResult);

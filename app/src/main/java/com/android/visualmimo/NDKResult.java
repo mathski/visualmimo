@@ -5,11 +5,11 @@ package com.android.visualmimo;
  * Any changes here have to be updated in the C++ code too.
  */
 public class NDKResult {
-    public boolean isOddFrame;
+    public int index;
     public boolean[] message;
 
-    public NDKResult(boolean isOddFrame, boolean[] message) {
-        this.isOddFrame = isOddFrame;
+    public NDKResult(int index, boolean[] message) {
+        this.index = index;
         this.message = message;
     }
 }

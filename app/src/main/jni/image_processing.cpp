@@ -8,6 +8,10 @@
 
 #define NUM_FRAMES 6
 
+#define INDEX_LENGTH 4
+#define PAYLOAD_CHARS 3
+#define VOTE(message,x,y,z) (0 < ((message)[x]?1:-1) + ((message)[y]?1:-1) + ((message)[z]?1:-1))
+
 using namespace cv;
 extern "C" {
   /**
@@ -100,6 +104,7 @@ extern "C" {
     }
   }
 
+
   /**
    * Sums intensity of parity bits for given image.
    */
@@ -122,7 +127,8 @@ extern "C" {
     return ins;
   }
 
-  bool processFrames(Mat (&matImages)[NUM_FRAMES], int width, int height, unsigned char *message,
+
+  int processFrames(Mat (&matImages)[NUM_FRAMES], int width, int height, unsigned char *message,
                      int width_blocks, int height_blocks, float (&corners)[NUM_FRAMES][8]) {
     // corners is an array of six arrays of eight corners, x y
 
@@ -147,22 +153,9 @@ extern "C" {
 
     int block_width = width / width_blocks;
     int block_height = height / height_blocks;
-
-    // Track highest and lowest corner intensities to determine parity.
-    int max_ins = INT_MIN;
-    int min_ins = INT_MAX;
 	
     // Find best pair of frames: NUM_FRAMES nCr 2 choices
     for (int i = 0; i < NUM_FRAMES - 1; i++) {
-
-      int pIns = getParityIntensities(targets[i], width, height, width_blocks, height_blocks);
-      if (pIns > max_ins) {
-        max_ins = pIns;
-      }
-      if (pIns < min_ins) {
-        min_ins = pIns;
-      }
-
       for (int k = i + 1; k < NUM_FRAMES; k++) {
 
         cv::Mat diffImg;
@@ -197,16 +190,7 @@ extern "C" {
       }
     }
 
-    // message is odd if parity bits are on
-    float avgParityIns = (max_ins + min_ins) / 2;
-
-    int pIns = getParityIntensities(targets[best1], width, height, width_blocks, height_blocks);
-
-    bool isOddFrame = pIns > avgParityIns;
-
     sprintf(strbuff, "NDK:LC: %d and %d", best1 + 1, best2 + 1);
-    debug_log_print(strbuff);
-    sprintf(strbuff, "NDK:LC: parity: %s", isOddFrame ? "odd" : "even");
     debug_log_print(strbuff);
 
 #ifndef ON_DEVICE
@@ -229,10 +213,34 @@ extern "C" {
 
     extractMessage(targets[best1], message, width, height, width_blocks, height_blocks);
 
+#ifndef NO_INDEX
+
+    //TODO extract index and three characters, in triplicate
+
+    int index = 0;
+    for (int i = 0; i < INDEX_LENGTH; i++) {
+      // check three replicas of each bit
+      if (VOTE(message, i, INDEX_LENGTH + i, width_blocks * height_blocks - 4 - INDEX_LENGTH)) {
+        // if true, add that bit
+        index += (1 << INDEX_LENGTH - i - 1);
+      }
+    }
+
+    // 3 character, 7 bits each, triplicate
+    // overwrites beginning of message array with 21 consensus
+    int pos = 0;
+    int payload_length = PAYLOAD_CHARS * 7;
+    for (int i = 2 * INDEX_LENGTH; i < 2 * INDEX_LENGTH + payload_length; i++) {
+      message[pos++] = VOTE(message, i, i + payload_length, i + 2 * payload_length);
+    }
+
+    return index;
+#endif
+
 #ifndef ON_DEVICE
     waitKey(0);
 #endif
 
-    return isOddFrame;
+    return 0;
   }
 }

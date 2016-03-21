@@ -282,7 +282,12 @@ float corners[][8] = {
   unsigned char* message = new unsigned char[num_blocks];
 	processFrames(imgs, width, height, message, width_blocks, height_blocks, corners);
 
+#ifndef NO_INDEX
 	for (int i = 0; i < num_blocks; i++) {
+#else
+  // 3 chars * 7 bits = 21
+  for (int i = 0; i < 21; i++) {
+#endif
 		cout << !!message[i];
 	}
 	cout << endl;

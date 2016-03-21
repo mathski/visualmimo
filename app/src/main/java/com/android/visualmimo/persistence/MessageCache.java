@@ -2,6 +2,7 @@ package com.android.visualmimo.persistence;
 
 import com.android.visualmimo.NDKResult;
 
+import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
@@ -14,12 +15,15 @@ public class MessageCache {
      * A hardcoded number of messages.
      * TODO: switch to some known "start" pattern to support variable length.
      */
-    public static final int NUM_MESSAGES = 2;
+    public static final int NUM_MESSAGES = 9;
 
-    private boolean expectingOdd = true;
+//    private int expectingIndex = 0;
 
+
+//    private ArrayList<NDKResult> messages = new ArrayList<NDKResult>(NUM_MESSAGES);
+    private NDKResult[] messages = new NDKResult[NUM_MESSAGES];
     /** Threadsafe, since we access it from the threaded NDK callback. */
-    private LinkedBlockingDeque<NDKResult> messages = new LinkedBlockingDeque<NDKResult>();
+//    private LinkedBlockingDeque<NDKResult> messages = new LinkedBlockingDeque<NDKResult>();
 
     private static MessageCache singleton;
     private MessageCache() {
@@ -41,37 +45,50 @@ public class MessageCache {
      * @return true if successfully added
      */
     public boolean addMessage(NDKResult result) {
-        if (expectingOdd != result.isOddFrame) {
-            System.err.println("Was expecting " + (expectingOdd ? "odd" : "even")
-                    + " frame. Dropping.");
-            return false;
-        }
-        if (isReady()) {
-            System.err.println("Message cache already ready. Dropping.");
-            return false;
-        }
+        synchronized (messages) {
+//            if (expectingIndex != result.index) {
+//                System.err.println("Was expecting index " + expectingIndex + " but got index "
+//                        + result.index + ". Dropping.");
+//                return false;
+//            }
+            if (messages[result.index] != null) {
+                System.err.println("Duplicate index " + result.index + ", dropping.");
+                return false;
+            }
 
-        expectingOdd = !expectingOdd;
-        return messages.add(result);
+            if (isReady()) {
+                System.err.println("Message cache already ready. Dropping.");
+                return false;
+            }
+
+//            expectingIndex++;
+            messages[result.index] = result;
+            return true;
+        }
     }
 
     /** Returns true if all expected messages have been collected. */
     public boolean isReady() {
-        return NUM_MESSAGES <= messages.size();
+//        return NUM_MESSAGES <= messages.size();
+        for (NDKResult r : messages) {
+            if (r == null)
+                return false;
+        }
+        return true;
     }
 
     /** Spits out total contents of list. */
     public boolean[] assemblePattern() {
-        if (messages.size() == 0) {
+        if (messages.length == 0) {
             return new boolean[0];
         }
 
-        boolean[] pattern = new boolean[messages.size() * messages.getFirst().message.length];
+        boolean[] pattern = new boolean[messages.length * 21];
 
         int pos = 0;
         for (NDKResult result : messages) {
-            System.arraycopy(result.message, 0, pattern, pos, result.message.length);
-            pos += result.message.length;
+            System.arraycopy(result.message, 0, pattern, pos, 21);
+            pos += 21;
         }
 
         return pattern;
@@ -79,7 +96,7 @@ public class MessageCache {
 
     /** Returns number of accepted messages in cache. */
     public int size() {
-        return messages.size();
+        return messages.length;
     }
 
 }

@@ -147,7 +147,7 @@ public class MainActivity extends VuforiaActivity implements Callback{
 		if (recordingMode)
 			frameCounter++;
 
-		onQCARUpdate(state, ((frameCounter % 20 == 0) && recordingMode)
+		onQCARUpdate(state, ((frameCounter % 10 == 0) && recordingMode)
 				|| (benchingInProgress && !idleBenchMode));
 
 		if (MessageCache.getInstance().isReady()) {

@@ -7,6 +7,6 @@ extern "C" {
                       int width, int height,
                       int width_blocks, int height_blocks);
 
-  bool processFrames(Mat (&matImages)[NUM_FRAMES], int width, int height, unsigned char *message,
+  int processFrames(Mat (&matImages)[NUM_FRAMES], int width, int height, unsigned char *message,
                      int width_blocks, int height_blocks, float (&corners)[NUM_FRAMES][8]);
 }
