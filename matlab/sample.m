@@ -6,7 +6,7 @@ function [ message ] = sample(imageId, messages, alpha, fps, height, width)
 % message: optional cell array of strings giving message to embed
 %          defaults to {'abcdefghij'}
 
-if ~exist('alpha', 'var'), alpha = 40; end
+if ~exist('alpha', 'var'), alpha = 10; end
 if ~exist('fps', 'var'), fps = 14; end
 if ~exist('height', 'var'), height = 448; end
 if ~exist('width', 'var'), width = 560; end
@@ -34,7 +34,7 @@ img=hsv2rgb(img);
 
 
 if ~exist('messages', 'var')
-    messages = {'abcabcabc', 'defdefdef'};
+    messages = {'abcd', 'efgh', 'ijkl', 'mnop'};
 end
 
 frames = [];
@@ -49,12 +49,9 @@ for i = 1:length(messages);
         parity_bit = -1;
     end
 
-     img1=uint8(img * 255 + checkerboardEncoder(alpha, height, width, 8, 10, message, 0, parity_bit));
-     img2=uint8(img * 255 + checkerboardEncoder(alpha, height, width, 8, 10, message, 1, parity_bit));
-    
-%     img1=uint8(img * 255 + colorEncoder(img, height, width, message, 0, sync_bit));
-%     img2=uint8(img * 255 + colorEncoder(img, height, width, message, 1, sync_bit));
-    
+    img1=uint8(img * 255 + checkerboardEncoder(alpha, height, width, 8, 10, message, 0, parity_bit));
+    img2=uint8(img * 255 + checkerboardEncoder(alpha, height, width, 8, 10, message, 1, parity_bit));
+
     frames = [frames im2frame(img1,cmap)];
     frames = [frames im2frame(img2,cmap)];
 end

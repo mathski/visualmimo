@@ -119,11 +119,14 @@ end
 
 function [bit] = getMessageAtPos(message, i, j, heightnum, widthnum, parity_bit, invert)
 % Returns the message bit at position i, j, inverted if appropriate,
-% Four corners have the value of parity_bit
+% Top left and bottom right corners have the value of parity_bit
+% Top right and bottom left corners have the value of -parity_bit
 % Note that i and j are indexing from 0
     
-    if (i == 0 && j == 0) || (i == 0 && j+1 == widthnum) || (i+1 == heightnum && j == 0) || (i+1 == heightnum && j+1 == widthnum);
+    if (i == 0 && j == 0) || (i+1 == heightnum && j+1 == widthnum)
         bit = parity_bit;
+    elseif (i+1 == heightnum && j == 0) || (i == 0 && j+1 == widthnum)
+        bit = -parity_bit;
     else
         parity_bit_offset = 1 + (i > 0) + (i+1 == heightnum);
         index = i * widthnum + j + 1 - parity_bit_offset;
