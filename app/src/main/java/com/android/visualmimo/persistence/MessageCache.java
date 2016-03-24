@@ -17,7 +17,7 @@ public class MessageCache {
     private int size = 0;
 
 
-    private final NDKResult[] messages = new NDKResult[NUM_MESSAGES];
+    private NDKResult[] messages = new NDKResult[NUM_MESSAGES];
 
     private static MessageCache singleton;
     private MessageCache() {
@@ -29,6 +29,11 @@ public class MessageCache {
             singleton = new MessageCache();
         }
         return singleton;
+    }
+
+    public void reset() {
+        messages = new NDKResult[NUM_MESSAGES];
+        size = 0;
     }
 
     /**

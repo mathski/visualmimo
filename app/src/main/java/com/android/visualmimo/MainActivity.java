@@ -76,6 +76,17 @@ public class MainActivity extends VuforiaActivity implements Callback{
 		}catch(Exception e){e.printStackTrace();}
 
 		loadingDialogHandler.sendEmptyMessage(LoadingDialogHandler.HIDE_LOADING_DIALOG);
+
+		(findViewById(R.id.resume_button)).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				MessageCache.getInstance().reset();
+				((TextView) findViewById(R.id.decoded_data)).setText("");
+				findViewById(R.id.resume_button).setVisibility(View.INVISIBLE);
+				vuforiaAppSession.mGlView.setVisibility(View.VISIBLE);
+				vuforiaAppSession.mGlView.onResume();
+			}
+		});
 	}
 
 	/** GestureListener for tap to focus. */
@@ -283,6 +294,7 @@ public class MainActivity extends VuforiaActivity implements Callback{
 		}
 
 		showToast(extracted.toString());
+
 		if (photoalbumMode) {
 			photoalbumMode = false;
 
@@ -305,8 +317,10 @@ public class MainActivity extends VuforiaActivity implements Callback{
 					}));
 		}
 		
-		//TODO: fix (doesn't do anything)
-		((TextView) findViewById(R.id.decoded_data)).setText("foo" + extracted.message);
+		((TextView) findViewById(R.id.message)).setText(extracted.message);
+		findViewById(R.id.resume_button).setVisibility(View.VISIBLE);
+		vuforiaAppSession.mGlView.setVisibility(View.INVISIBLE);
+		vuforiaAppSession.mGlView.onPause();
 
 		return true;
 	}

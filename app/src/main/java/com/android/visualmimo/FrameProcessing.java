@@ -81,13 +81,15 @@ public class FrameProcessing {
                 MessageCache cache = MessageCache.getInstance();
                 boolean cacheAccepted = cache.addMessage(ndkResult);
                 System.out.println("MessageCache.isReady(): " + cache.isReady());
-                System.out.println(MessageUtils.parseMessage(cache.assemblePattern()));
+                boolean[] pattern = cache.assemblePattern();
+                String m = MessageUtils.parseMessage(pattern);
+                System.out.println(m);
                 MessageUtils.printArray(cache.assemblePattern(), System.out);
 
                 // update UI (doesn't work)
-                if (!benchingInProgress) {
+                if (cache.isReady()) {
                     Message msg = new Message();
-                    msg.obj = new ExtractedMessage(accuracy, ascii, message);
+                    msg.obj = new ExtractedMessage(accuracy, m, pattern);
                     handler.sendMessage(msg);
                 }
             }
