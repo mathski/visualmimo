@@ -28,7 +28,7 @@ int main(int argv, char **argc) {
 
 	int width_blocks = 10;
 	int height_blocks = 8;
-	int num_blocks = width_blocks * height_blocks - 4;
+	int num_blocks = (width_blocks * height_blocks - 4)/2 - 4;
 
   /* single frame corners *
      float c0x1 = 280.267365;
@@ -280,7 +280,10 @@ float corners[][8] = {
 
 
   unsigned char* message = new unsigned char[num_blocks];
-	processFrames(imgs, width, height, message, width_blocks, height_blocks, corners);
+	struct NDK_RESULT r = processFrames(imgs, width, height, message, width_blocks, height_blocks, corners);
+
+	cout << "index: " << r.index << endl;
+	cout << "mismatches: " << r.mismatches << endl;
 
 #ifndef NO_INDEX
 	for (int i = 0; i < num_blocks; i++) {

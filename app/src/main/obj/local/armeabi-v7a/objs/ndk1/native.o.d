@@ -100,7 +100,7 @@ obj/local/armeabi-v7a/objs/ndk1/native.o: jni/native.cpp \
  ../../../OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv/highgui.h \
  ../../../OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/highgui/highgui_c.h \
  ../../../OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/highgui/highgui.hpp \
- jni/image_processing.h jni/android_compat.h
+ jni/image_processing.h jni/ndk_result.h jni/android_compat.h
 
 /opt/android-ndk/platforms/android-3/arch-arm/usr/include/string.h:
 
@@ -305,5 +305,7 @@ obj/local/armeabi-v7a/objs/ndk1/native.o: jni/native.cpp \
 ../../../OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/highgui/highgui.hpp:
 
 jni/image_processing.h:
+
+jni/ndk_result.h:
 
 jni/android_compat.h:

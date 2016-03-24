@@ -126,7 +126,7 @@ function [bit] = getMessageAtPos(message, i, j, heightnum, widthnum, parity_bit,
     if (i == 0 && j == 0) || (i+1 == heightnum && j+1 == widthnum)
         bit = parity_bit;
     elseif (i+1 == heightnum && j == 0) || (i == 0 && j+1 == widthnum)
-        bit = -parity_bit;
+        bit = parity_bit;
     else
         parity_bit_offset = 1 + (i > 0) + (i+1 == heightnum);
         index = i * widthnum + j + 1 - parity_bit_offset;

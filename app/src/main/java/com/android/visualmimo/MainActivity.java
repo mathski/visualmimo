@@ -147,12 +147,14 @@ public class MainActivity extends VuforiaActivity implements Callback{
 		if (recordingMode)
 			frameCounter++;
 
-		onQCARUpdate(state, ((frameCounter % 10 == 0) && recordingMode)
-				|| (benchingInProgress && !idleBenchMode));
+		boolean shouldTakePicture = ((frameCounter % 20 == 0) && recordingMode)
+				|| (benchingInProgress && !idleBenchMode);
+//		System.out.println("shouldTakePicture: " + shouldTakePicture);
+		onQCARUpdate(state, shouldTakePicture);
 
 		if (MessageCache.getInstance().isReady()) {
-			saveCount = 0;
 			recordingMode = false;
+			System.out.println("Stopping recording mode.");
 		}
 	}
 
@@ -162,12 +164,13 @@ public class MainActivity extends VuforiaActivity implements Callback{
 	}
 
 	private void handleSaveButton() {
+		System.out.println("Save button pressed.");
 		// enable recording mode after delay
 		new Handler().postDelayed(new Runnable() {
 			@Override
 			public void run() {
 				recordingMode = true;
-
+				System.out.println("Starting recording mode.");
 			}
 		}, 1000);
 		saveCount = 0;

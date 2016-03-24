@@ -135,8 +135,9 @@ public abstract class VuforiaActivity extends Activity implements Handler.Callba
 //            }).start();
 
             if (takePicture) {
-                saveCount++;
+//                saveCount++;
                 if (saveCount <= NUM_SAVES) {
+                    System.out.println("Processing frames");
                     FrameProcessing.processFrames(
                             cache,
                             this,

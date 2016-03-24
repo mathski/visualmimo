@@ -14,7 +14,10 @@ public class MessageUtils {
 				if ((i == 0 && (j == 0 || j == 9)) || (i == 7 && (j == 0 || j == 9))) {
 					out.print("S ");
 				} else {
-					out.print(pattern[k++] ? "X " : ". ");
+					if (k < pattern.length)
+						out.print(pattern[k++] ? "X " : ". ");
+					else
+						out.print("  ");
 				}
 			}
 			out.println();

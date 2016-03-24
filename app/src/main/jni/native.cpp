@@ -11,6 +11,7 @@
 
 #include "image_processing.h"
 #include "android_compat.h"
+#include "ndk_result.h"
 
 #define NUM_FRAMES 6
 
@@ -47,10 +48,10 @@ extern "C" {
     // Extract message
     int width_blocks = 10;
     int height_blocks = 8;
-    int num_blocks = width_blocks * height_blocks - 4; // - 4 for the four corners
+    int num_blocks = (width_blocks * height_blocks - 4)/2 - 4; // - 4 for the four corners, index bits
 
     jboolean message[num_blocks];
-    jint index = processFrames(
+    NDK_RESULT r = processFrames(
         matImages,
         width,
         height,
@@ -85,8 +86,8 @@ extern "C" {
     #endif
 
     jclass cls = env->FindClass("com/android/visualmimo/NDKResult");
-    jmethodID methodId = env->GetMethodID(cls, "<init>", "(I[Z)V"); //[Z for bool array, I for int
-    jobject ret = env->NewObject(cls, methodId, index, message_jboolean);
+    jmethodID methodId = env->GetMethodID(cls, "<init>", "(II[Z)V"); //[Z for bool array, I for int
+    jobject ret = env->NewObject(cls, methodId, r.index, r.mismatches, message_jboolean);
 
     //TODO figure out if this causes crashes
     // last arg: 0 -> copy array back, JNI_ABBORT -> don't copy

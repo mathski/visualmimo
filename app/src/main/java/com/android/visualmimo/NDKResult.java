@@ -6,10 +6,12 @@ package com.android.visualmimo;
  */
 public class NDKResult {
     public int index;
+    public int mismatches;
     public boolean[] message;
 
-    public NDKResult(int index, boolean[] message) {
+    public NDKResult(int index, int mismatches, boolean[] message) {
         this.index = index;
+        this.mismatches = mismatches;
         this.message = message;
     }
 }
