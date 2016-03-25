@@ -34,14 +34,16 @@ img=hsv2rgb(img);
 
 
 if ~exist('messages', 'var')
-    messages = {'abcd', 'efgh', 'ijkl', 'mnop'};
+    messages = 'abcdefghijklmnop';
+end
+
+if mod(length(messages), 4) ~= 0;
+    messages = [messages repmat('.', 1, 4-mod(length(messages),4))];
 end
 
 frames = [];
-totalmessage = '';
-for i = 1:length(messages);
-    totalmessage = strcat(totalmessage, messages{i});
-    message = addIndexToPattern(asciiMessage(messages{i}), i-1);
+for i = 1:4:length(messages)-3;
+    message = addIndexToPattern(asciiMessage(messages(i:i+3)), i-1);
     
     % sync_bit for in-progress multiframe implementation
     parity_bit = mod(i, 2);
@@ -57,7 +59,7 @@ for i = 1:length(messages);
 end
 
 
-filename = strcat(imageId, '-', totalmessage, '-', int2str(alpha), '-', int2str(fps),  '.avi');
+filename = strcat(imageId, '-', messages, '-', int2str(alpha), '-', int2str(fps),  '.avi');
 writeFrames(frames, filename, fps);
 
 end
