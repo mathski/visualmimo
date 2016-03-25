@@ -49,11 +49,11 @@ for i = 1:length(messages);
         parity_bit = -1;
     end
 
-     img1=uint8(img * 255 + checkerboardEncoder(alpha, height, width, 8, 10, message, 0, parity_bit));
+    img1=uint8(img * 255 + checkerboardEncoder(alpha, height, width, 8, 10, message, 0, parity_bit));
      img2=uint8(img * 255 + checkerboardEncoder(alpha, height, width, 8, 10, message, 1, parity_bit));
     
-%     img1=uint8(img * 255 + colorEncoder(img, height, width, message, 0, sync_bit));
-%     img2=uint8(img * 255 + colorEncoder(img, height, width, message, 1, sync_bit));
+%     img1=uint8(img * 255 + colorEncoder(img, height, width, message, 0, parity_bit));
+ %    img2=uint8(img * 255 + colorEncoder(img, height, width, message, 1, parity_bit));
     
     frames = [frames im2frame(img1,cmap)];
     frames = [frames im2frame(img2,cmap)];
