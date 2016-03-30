@@ -28,6 +28,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.android.visualmimo.persistence.MessageCache;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -49,6 +50,9 @@ public class MainActivity extends VuforiaActivity implements Callback{
 	private boolean benchingInProgress = false;
 	private boolean recordingMode = false;
 	private boolean photoalbumMode = false, whiteboardDemo = false;
+
+	/** Counts how many frames have elapsed since last NDK call. */
+	private int frameCounter = 0;
 
 	private GestureDetector mGestureDetector;
 
@@ -72,6 +76,17 @@ public class MainActivity extends VuforiaActivity implements Callback{
 		}catch(Exception e){e.printStackTrace();}
 
 		loadingDialogHandler.sendEmptyMessage(LoadingDialogHandler.HIDE_LOADING_DIALOG);
+
+		(findViewById(R.id.resume_button)).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				MessageCache.getInstance().reset();
+				((TextView) findViewById(R.id.decoded_data)).setText("");
+				findViewById(R.id.resume_button).setVisibility(View.INVISIBLE);
+				vuforiaAppSession.mGlView.setVisibility(View.VISIBLE);
+				vuforiaAppSession.mGlView.onResume();
+			}
+		});
 	}
 
 	/** GestureListener for tap to focus. */
@@ -135,10 +150,22 @@ public class MainActivity extends VuforiaActivity implements Callback{
 	/** Create new MIMOFrame, add to FrameCache. */
 	public void onQCARUpdate(State state) {
 		benchFPS();
-		onQCARUpdate(state, recordingMode || (benchingInProgress && !idleBenchMode));
-		if(saveCount > NUM_SAVES){
-			saveCount = 0;
+
+		NUM_SAVES = MessageCache.NUM_MESSAGES
+				- MessageCache.getInstance().size()
+				+ saveCount;
+
+		if (recordingMode)
+			frameCounter++;
+
+		boolean shouldTakePicture = ((frameCounter % 20 == 0) && recordingMode)
+				|| (benchingInProgress && !idleBenchMode);
+//		System.out.println("shouldTakePicture: " + shouldTakePicture);
+		onQCARUpdate(state, shouldTakePicture);
+
+		if (MessageCache.getInstance().isReady()) {
 			recordingMode = false;
+			System.out.println("Stopping recording mode.");
 		}
 	}
 
@@ -148,12 +175,13 @@ public class MainActivity extends VuforiaActivity implements Callback{
 	}
 
 	private void handleSaveButton() {
+		System.out.println("Save button pressed.");
 		// enable recording mode after delay
 		new Handler().postDelayed(new Runnable() {
 			@Override
 			public void run() {
 				recordingMode = true;
-
+				System.out.println("Starting recording mode.");
 			}
 		}, 1000);
 		saveCount = 0;
@@ -182,18 +210,6 @@ public class MainActivity extends VuforiaActivity implements Callback{
 				return true;
 			case R.id.action_album:
 				handleDemoButton();
-				return true;
-			case R.id.action_burst:
-				if (burstMode) {
-					showToast("Disabling Burst Mode");
-					NUM_SAVES = 1;
-					burstMode = false;
-				}
-				else {
-					showToast("Enabling Burst Mode (" + BURST_SAVES + ")");
-					NUM_SAVES = BURST_SAVES;
-					burstMode = true;
-				}
 				return true;
 
 			case R.id.action_idle_fps:
@@ -278,6 +294,7 @@ public class MainActivity extends VuforiaActivity implements Callback{
 		}
 
 		showToast(extracted.toString());
+
 		if (photoalbumMode) {
 			photoalbumMode = false;
 
@@ -300,8 +317,10 @@ public class MainActivity extends VuforiaActivity implements Callback{
 					}));
 		}
 		
-		//TODO: fix (doesn't do anything)
-		((TextView) findViewById(R.id.decoded_data)).setText("foo" + extracted.message);
+		((TextView) findViewById(R.id.message)).setText(extracted.message);
+		findViewById(R.id.resume_button).setVisibility(View.VISIBLE);
+		vuforiaAppSession.mGlView.setVisibility(View.INVISIBLE);
+		vuforiaAppSession.mGlView.onPause();
 
 		return true;
 	}

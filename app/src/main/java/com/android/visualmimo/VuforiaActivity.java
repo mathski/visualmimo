@@ -5,7 +5,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.visualmimo.persistence.FrameCache;
@@ -40,10 +42,6 @@ public abstract class VuforiaActivity extends Activity implements Handler.Callba
     protected int NUM_SAVES = 1;
     protected int saveCount = 0;
     protected int frameCount = 0;
-    /** Flag and data for burst collection. */
-    protected boolean burstMode = false;
-    protected static final int BURST_SAVES = 100;
-    protected double[] accuracies;
 
     protected RequestQueue queue;
     /** FrameCache to which we add Frames as they come. */
@@ -132,30 +130,24 @@ public abstract class VuforiaActivity extends Activity implements Handler.Callba
             final int stride = image.getStride();
 
             // Add frame to FrameCache.
-            new Thread(new Runnable() {
-                public void run() {
+//            new Thread(new Runnable() {
+//                public void run() {
                     cache.addFrame(pixelArray, imageWidth, imageHeight, corners);
-                }
-            }).start();
+//                }
+//            }).start();
 
             if (takePicture) {
-                if (saveCount == 0) {
-                    accuracies = new double[NUM_SAVES];
-                }
-                saveCount++;
+//                saveCount++;
                 if (saveCount <= NUM_SAVES) {
+                    System.out.println("Processing frames");
                     FrameProcessing.processFrames(
                             cache,
                             this,
-                            saveCount,
                             false,
-                            burstMode,
-                            NUM_SAVES,
                             imageWidth,
-                            imageHeight,
-                            accuracies);
+                            imageHeight);
                 } else {
-                    //saveCount = 0;
+//                    saveCount = 0;
                 }
             }
 

@@ -1,4 +1,4 @@
-function [ checkerboard ] = checkerboardEncoder( kappa, imheight, imwidth, heightnum, widthnum, message, invert, sync_bit)
+function [ checkerboard ] = checkerboardEncoder( kappa, imheight, imwidth, heightnum, widthnum, message, invert, parity_bit)
 % Encodes 1D bit array into a checkerboard pattern.
 % kappa: intensity for 1's
 % heightnum/widthnum: number of blocks in height and width
@@ -30,7 +30,7 @@ for i = 0:(heightnum-1);
         width = j * widthstep;
         
         %sign is 1 or -1 if corresponding part of message is true, else 0
-        sign = message(i*widthnum + j + 1) * invert;
+        sign = getMessageAtPos(message, i, j, heightnum, widthnum, parity_bit, invert);
         
         %going to fill with solid value if sign is 1
         checkerboard( (height+1:height+heightstep), (width+1:width+widthstep), 1:3 ) = sign*kappa;
@@ -58,43 +58,43 @@ for i = 0:(heightnum-1);
                 pixelvalue = 0;
                 tot = 0;
                 if i > 0 && j > 0,
-                    pixelvalue =  pixelvalue + getMessageAtPos(message, i-1, j-1, heightnum, widthnum, sync_bit, invert) * mask(1, x-height, y-width)*kappa;
+                    pixelvalue =  pixelvalue + getMessageAtPos(message, i-1, j-1, heightnum, widthnum, parity_bit, invert) * mask(1, x-height, y-width)*kappa;
                     tot = tot + mask(1, x-height, y-width);
                 end
                 if j > 0,
-                    pixelvalue =  pixelvalue + getMessageAtPos(message, i, j-1, heightnum, widthnum, sync_bit, invert) * mask(4, x-height, y-width)*kappa;
+                    pixelvalue =  pixelvalue + getMessageAtPos(message, i, j-1, heightnum, widthnum, parity_bit, invert) * mask(4, x-height, y-width)*kappa;
                     tot = tot + mask(4, x-height, y-width);
                 end
                 if i < heightnum - 1 && j > 0,
-                    pixelvalue =  pixelvalue + getMessageAtPos(message, i+1, j-1, heightnum, widthnum, sync_bit, invert) * mask(7, x-height, y-width)*kappa;
+                    pixelvalue =  pixelvalue + getMessageAtPos(message, i+1, j-1, heightnum, widthnum, parity_bit, invert) * mask(7, x-height, y-width)*kappa;
                     tot = tot + mask(7, x-height, y-width);
                 end
 
 
                 if i > 0,
-                    pixelvalue =  pixelvalue + getMessageAtPos(message, i-1, j, heightnum, widthnum, sync_bit, invert) * mask(2, x-height, y-width)*kappa;
+                    pixelvalue =  pixelvalue + getMessageAtPos(message, i-1, j, heightnum, widthnum, parity_bit, invert) * mask(2, x-height, y-width)*kappa;
                     tot = tot + mask(2, x-height, y-width);
                 end
                 if 1,
-                    pixelvalue =  pixelvalue + getMessageAtPos(message, i, j, heightnum, widthnum, sync_bit, invert) * mask(5, x-height, y-width)*kappa;
+                    pixelvalue =  pixelvalue + getMessageAtPos(message, i, j, heightnum, widthnum, parity_bit, invert) * mask(5, x-height, y-width)*kappa;
                     tot = tot + mask(5, x-height, y-width);
                 end
                 if i < heightnum - 1,
-                    pixelvalue =  pixelvalue + getMessageAtPos(message, i+1, j, heightnum, widthnum, sync_bit, invert) * mask(8, x-height, y-width)*kappa;
+                    pixelvalue =  pixelvalue + getMessageAtPos(message, i+1, j, heightnum, widthnum, parity_bit, invert) * mask(8, x-height, y-width)*kappa;
                     tot = tot + mask(8, x-height, y-width);
                 end
 
 
                 if i > 0 && j < widthnum - 1,
-                    pixelvalue =  pixelvalue + getMessageAtPos(message, i-1, j+1, heightnum, widthnum, sync_bit, invert) * mask(3, x-height, y-width)*kappa;
+                    pixelvalue =  pixelvalue + getMessageAtPos(message, i-1, j+1, heightnum, widthnum, parity_bit, invert) * mask(3, x-height, y-width)*kappa;
                     tot = tot + mask(3, x-height, y-width);
                 end
                 if j < widthnum - 1,
-                    pixelvalue =  pixelvalue + getMessageAtPos(message, i, j+1, heightnum, widthnum, sync_bit, invert) * mask(6, x-height, y-width)*kappa;
+                    pixelvalue =  pixelvalue + getMessageAtPos(message, i, j+1, heightnum, widthnum, parity_bit, invert) * mask(6, x-height, y-width)*kappa;
                     tot = tot + mask(6, x-height, y-width);
                 end
                 if i < heightnum - 1 && j < widthnum - 1,
-                    pixelvalue =  pixelvalue + getMessageAtPos(message, i+1, j+1, heightnum, widthnum, sync_bit, invert) * mask(9, x-height, y-width)*kappa;
+                    pixelvalue =  pixelvalue + getMessageAtPos(message, i+1, j+1, heightnum, widthnum, parity_bit, invert) * mask(9, x-height, y-width)*kappa;
                     tot = tot + mask(9, x-height, y-width);
                 end
 
@@ -117,12 +117,19 @@ end
 
 end
 
-function [bit] = getMessageAtPos(message, i, j, heightnum, widthnum, sync_bit, invert)
+function [bit] = getMessageAtPos(message, i, j, heightnum, widthnum, parity_bit, invert)
 % Returns the message bit at position i, j, inverted if appropriate,
-% sign_bit if last bit (ignores invert for the sign bits)
-    bit = message(i * widthnum + j + 1) * invert;
+% Top left and bottom right corners have the value of parity_bit
+% Top right and bottom left corners have the value of -parity_bit
+% Note that i and j are indexing from 0
     
-    if heightnum == i + 1 && widthnum == j + 1;
-        bit = sync_bit;
+    if (i == 0 && j == 0) || (i+1 == heightnum && j+1 == widthnum)
+        bit = parity_bit;
+    elseif (i+1 == heightnum && j == 0) || (i == 0 && j+1 == widthnum)
+        bit = parity_bit;
+    else
+        parity_bit_offset = 1 + (i > 0) + (i+1 == heightnum);
+        index = i * widthnum + j + 1 - parity_bit_offset;
+        bit = message(index) * invert;
     end
 end

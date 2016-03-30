@@ -19,11 +19,6 @@
           android:showAsAction="ifRoom"
         />
     
-    <item android:id="@+id/action_burst"
-        android:title="Toggle Burst"
-        android:showAsAction="never"
-        />
-    
     <item android:id="@+id/action_idle_fps"
         android:title="Idle FPS"
         android:showAsAction="never"

@@ -30,13 +30,9 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer
     private VuforiaSession vuforiaAppSession;
     private Activity mActivity;
     
-    private int shaderProgramID;
-    
     private Renderer mRenderer;
     
     public boolean mIsActive = false;
-    
-    private static final float OBJECT_SCALE_FLOAT = 3.0f;
     
     public ImageTargetRenderer(Activity activity,
         VuforiaSession session)
@@ -100,24 +96,24 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer
      */
     private void renderFrame()
     {
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
-        
+//        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+//
         State state = mRenderer.begin();
         mRenderer.drawVideoBackground();
-        
-        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
-        
-        // handle face culling, we need to detect if we are using reflection
-        // to determine the direction of the culling
-        GLES20.glEnable(GLES20.GL_CULL_FACE);
-        GLES20.glCullFace(GLES20.GL_BACK);
-        if (Renderer.getInstance().getVideoBackgroundConfig().getReflection() == VIDEO_BACKGROUND_REFLECTION.VIDEO_BACKGROUND_REFLECTION_ON)
-            GLES20.glFrontFace(GLES20.GL_CW); // Front camera
-        else
-            GLES20.glFrontFace(GLES20.GL_CCW); // Back camera
-        
-        GLES20.glDisable(GLES20.GL_DEPTH_TEST);
-        
+//
+//        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+//
+//        // handle face culling, we need to detect if we are using reflection
+//        // to determine the direction of the culling
+//        GLES20.glEnable(GLES20.GL_CULL_FACE);
+//        GLES20.glCullFace(GLES20.GL_BACK);
+//        if (Renderer.getInstance().getVideoBackgroundConfig().getReflection() == VIDEO_BACKGROUND_REFLECTION.VIDEO_BACKGROUND_REFLECTION_ON)
+//            GLES20.glFrontFace(GLES20.GL_CW); // Front camera
+//        else
+//            GLES20.glFrontFace(GLES20.GL_CCW); // Back camera
+//
+//        GLES20.glDisable(GLES20.GL_DEPTH_TEST);
+//
         mRenderer.end();
     }
     

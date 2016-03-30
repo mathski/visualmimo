@@ -15,6 +15,6 @@ public class ExtractedMessage {
     }
 
     public String toString() {
-        return accuracy + ":" + message;
+        return message;
     }
 }
