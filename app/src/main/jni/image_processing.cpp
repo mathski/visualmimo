@@ -1,238 +1,233 @@
 #include <string.h>
-#include <limits.h>
 #include <cv.h>
 #include <highgui.h>
+#include <numeric>
 
 #include "helpers.h"
 #include "android_compat.h"
 
-#define NUM_FRAMES 6
-
 using namespace cv;
 extern "C" {
-  /**
-   * Extracts a message from image. Iterates through ROI grid, using average to
-   * determine on/off state.
-   */
+/**
+ * Extracts a message from image. Iterates through ROI grid, using average to
+ * determine on/off state.
+ */
+double arrayMedian(double nums[]){
+      int i, j, numsSize = 0;
+	  double median, temp = 0.0;
+	  double* arr = new double[80];
+      numsSize = 80;
+	  
+	  for(i = 0; i < numsSize; i ++){
+		  arr[i] = nums[i];
+	  }
+	  
+      for(i = 0; i < numsSize; i ++){
+          for(j = i + 1; j < numsSize; j ++){
+              if(arr[j] <= arr[i]){
+                  temp = arr[i];
+                  arr[i] = arr[j];
+                  arr[j] = temp;
+              }
+          }
+      }
+	  
+      if(numsSize % 2 != 0) median = arr[numsSize / 2];
+      else median = ((arr[(numsSize - 1) / 2] + arr[(numsSize + 1) / 2])/2);
+      return median;
+  }
+
   void extractMessage(Mat &image, unsigned char *message,
-                      int width, int height,
-                      int width_blocks, int height_blocks) {
-    unsigned char message_buff[width_blocks * height_blocks];
-    int block_width = width / width_blocks;
-    int block_height = height / height_blocks;
-	
-    // Threshold for message extraction is average intensity of difference.
-    Scalar m = mean(image);
-    int cutoff = m[0] + m[1] + m[2];
-    // debug_log_print("NDK:LC: [threshold: %d]", threshold);
-	
-    int k = 0;
-    for (int i = 0; i < height; i += block_height) {
-      for (int j = 0; j < width; j += block_width) {
-        // Get region of interest
-        Mat block = image(Rect(i, j, block_height, block_width));
-        Scalar m = mean(block);
-        message_buff[k++] = (m[0] + m[1] + m[2] > cutoff);
+          int width, int height,
+          int width_blocks, int height_blocks, int threshold) {
 
-#ifndef ON_DEVICE
-        // char strbuff[80];
-        // sprintf(strbuff, "%d", (m[0] + m[1] + m[2] > cutoff));
-        // debug_log_print(strbuff);
-        // imshow("patch", block);
-        // waitKey(0);
-#endif
+      Mat spl[3];
+      double cutoff = 0;
+      int block_width = width / width_blocks;
+      int block_height = height / height_blocks;
+      double* m = new double[height_blocks*width_blocks];
 
-      }
-    }
-
-    // reorder message correctly
-    k = 0;
-    for (int i = 0; i < height_blocks; i++) {
-			for (int j = width_blocks - 1; j >= 0; j--) {
-        // Skip four corners (parity bits)
-        if (!(i == 0 && (j == 0 || j == width_blocks - 1))
-            && !(i == height_blocks - 1 && (j == 0 || j == width_blocks - 1))) {
-          message[k++] = message_buff[i * width_blocks + j];
-        }
-			}
-		}
-  }
-
-  /**
-   * Checks if any corner is "on" in difference, indicating parity mismatch.
-   */
-  bool isParityMismatch(Mat &img1, Mat &img2, int width, int height,
-                        int width_blocks, int height_blocks) {
-    int block_width = width / width_blocks;
-    int block_height = height / height_blocks;
-
-    cv::Mat diff, block;
-    cv::Scalar m;
-    cv::absdiff(img1, img2, diff);
-
-    // Threshold for message extraction is average intensity of difference.
-    m = mean(diff);
-    int cutoff = m[0] + m[1] + m[2];
-    // debug_log_print("NDK:LC: [threshold: %d]", threshold);
-
-    block = diff(Rect(0, 0, block_height, block_width));
-    m = mean(block);
-    bool topright = (m[0] + m[1] + m[2] > cutoff);
-
-    block = diff(Rect(0, width-block_width, block_height, block_width));
-    m = mean(block);
-    bool bottomright = (m[0] + m[1] + m[2] > cutoff);
-
-    block = diff(Rect(height-block_height, 0, block_height, block_width));
-    m = mean(block);
-    bool topleft = (m[0] + m[1] + m[2] > cutoff);
-
-    block = diff(Rect(height-block_height, width-block_width, block_height, block_width));
-    m = mean(block);
-    bool bottomleft = (m[0] + m[1] + m[2] > cutoff);
-
-    if (!topright && !bottomright && !topleft && !bottomleft) {
-      debug_log_print("Parity bits are valid.");
-      return false;
-    } else {
-      debug_log_print("Parity bits mismatch!");
-      return true;
-    }
-  }
-
-  /**
-   * Sums intensity of parity bits for given image.
-   */
-  int getParityIntensities(Mat& image, int width, int height, int width_blocks, int height_blocks) {
-    int ins = 0;
-    cv::Scalar m;
-
-    int block_width = width / width_blocks;
-    int block_height = height / height_blocks;
-
-    m = mean(image(Rect(0, 0, block_height, block_width)));
-    ins += m[0] + m[1] + m[2];
-    m = mean(image(Rect(0, width-block_width, block_height, block_width)));
-    ins += m[0] + m[1] + m[2];
-    m = mean(image(Rect(height-block_height, 0, block_height, block_width)));
-    ins += m[0] + m[1] + m[2];
-    m = mean(image(Rect(height-block_height, width-block_width, block_height, block_width)));
-    ins += m[0] + m[1] + m[2];
-    
-    return ins;
-  }
-
-  bool processFrames(Mat (&matImages)[NUM_FRAMES], int width, int height, unsigned char *message,
-                     int width_blocks, int height_blocks, float (&corners)[NUM_FRAMES][8]) {
-    // corners is an array of six arrays of eight corners, x y
-
-    char strbuff[80];
-
-    Scalar m;
-    int ins[NUM_FRAMES];
-
-    // Define the destination image
-    cv::Mat targets[NUM_FRAMES];
-    for (int i = 0; i < NUM_FRAMES; i++) {
-      targets[i] = cv::Mat::zeros(width, height, CV_8UC1);
-      projectiveTransform(matImages[i], targets[i], corners[i]);
-
-      m = mean(targets[i]);
-      ins[i] = m[0] + m[1] + m[2];
-    }
-
-    int best1 = 0;
-    int best2 = 0;
-    int bestDiff = 0;
-
-    int block_width = width / width_blocks;
-    int block_height = height / height_blocks;
-
-    // Track highest and lowest corner intensities to determine parity.
-    int max_ins = INT_MIN;
-    int min_ins = INT_MAX;
-	
-    // Find best pair of frames: NUM_FRAMES nCr 2 choices
-    for (int i = 0; i < NUM_FRAMES - 1; i++) {
-
-      int pIns = getParityIntensities(targets[i], width, height, width_blocks, height_blocks);
-      if (pIns > max_ins) {
-        max_ins = pIns;
-      }
-      if (pIns < min_ins) {
-        min_ins = pIns;
-      }
-
-      for (int k = i + 1; k < NUM_FRAMES; k++) {
-
-        cv::Mat diffImg;
-        subtract(targets[i], targets[k], diffImg);
-        sprintf(strbuff, "%d - %d", i, k);
-
-        int diff = abs(ins[i] - ins[k]);
-        if (diff > bestDiff) {
-          int ii = i;
-          int kk = k;
-          if (ins[ii] < ins[kk]) {
-            ii = k;
-            kk = i;
+      split(image,spl);
+      Mat image_mag = image;
+	  int k = 0;
+      for (int i = 0; i < height; i += block_height) {
+          for (int j = 0; j < width; j += block_width) {
+			  double numDistances = block_width * block_height;
+			  double total = 0.0;
+			  
+			  // This is the more correct way to do this.
+			  for(int l = 0; l < block_width; l += 1){
+				 for(int m = 0; m < block_height; m += 1){
+					Mat pixels = image_mag(Rect(i + m, j + l, 1, 1));
+					Scalar averages = mean(pixels);
+					total += sqrt( (averages[0] * averages[0]) + (averages[1] * averages[1]) + (averages[2] * averages[2]) );
+				 } 
+			  }
+			  m[k] = total / numDistances;
+			  k = k + 1;
           }
-
-          sprintf(strbuff, "checking parity on %d-%d", ii, kk);
-          debug_log_print(strbuff);
-          subtract(targets[ii], targets[kk], diffImg);
-
-#ifndef ON_DEVICE
-          // imshow(strbuff, diffImg);
-#endif
-
-          if (isParityMismatch(targets[ii], targets[kk], width, height, width_blocks, height_blocks)) {
-            continue;
-          }
-
-          bestDiff = diff;
-          best1 = ii;
-          best2 = kk;
-        }
       }
-    }
+	  
+      cutoff = arrayMedian(m);
+	  
+	  for(int l = 0; l < 80; l ++){
+		  std::cout << "val " << m[l] << std::endl;
+	  }
+	  std::cout << "Total number of blocks: " << k << std::endl;
+      for (int block_idx = 0; block_idx < k; block_idx ++){
+		 message[block_idx] = (m[block_idx] > cutoff);
+      }
+	  
+	}
 
-    // message is odd if parity bits are on
-    float avgParityIns = (max_ins + min_ins) / 2;
+void processFrames(Mat matImage1, Mat matImage2, Mat matImage3, Mat matImage4,
+	int width, int height, unsigned char *message,
+	int width_blocks, int height_blocks,
 
-    int pIns = getParityIntensities(targets[best1], width, height, width_blocks, height_blocks);
+	float c0x1, float c0y1,
+    float c1x1, float c1y1,
+    float c2x1, float c2y1,
+    float c3x1, float c3y1,
 
-    bool isOddFrame = pIns > avgParityIns;
+    float c0x2, float c0y2,
+    float c1x2, float c1y2,
+    float c2x2, float c2y2,
+    float c3x2, float c3y2,
 
-    sprintf(strbuff, "NDK:LC: %d and %d", best1 + 1, best2 + 1);
-    debug_log_print(strbuff);
-    sprintf(strbuff, "NDK:LC: parity: %s", isOddFrame ? "odd" : "even");
-    debug_log_print(strbuff);
+    float c0x3, float c0y3,
+    float c1x3, float c1y3,
+    float c2x3, float c2y3,
+    float c3x3, float c3y3,
 
-#ifndef ON_DEVICE
-    imshow("best1", targets[best1]);
-    imshow("best2", targets[best2]);
-#endif
+    float c0x4, float c0y4,
+    float c1x4, float c1y4,
+    float c2x4, float c2y4,
+    float c3x4, float c3y4
+	) {
 
+	// Define the destination image
+	cv::Mat target1 = cv::Mat::zeros(width, height, CV_8UC1);
+	cv::Mat target2 = cv::Mat::zeros(width, height, CV_8UC1);
+	cv::Mat target3 = cv::Mat::zeros(width, height, CV_8UC1);
+	cv::Mat target4 = cv::Mat::zeros(width, height, CV_8UC1);
+	projectiveTransform(matImage1, target1, c0x1, c0y1, c1x1, c1y1, c2x1, c2y1, c3x1, c3y1);
+	projectiveTransform(matImage2, target2, c0x2, c0y2, c1x2, c1y2, c2x2, c2y2, c3x2, c3y2);
+	projectiveTransform(matImage3, target3, c0x3, c0y3, c1x3, c1y3, c2x3, c2y3, c3x3, c3y3);
+	projectiveTransform(matImage4, target4, c0x4, c0y4, c1x4, c1y4, c2x4, c2y4, c3x4, c3y4);
 
-    // Histogram equalization.
-    // Optimally we'd apply the same transformation to each image, but this is pretty close.
-    histogramEqualization(targets[best1]);
-    histogramEqualization(targets[best2]);
+	// Find best pair of frames
+	Scalar m;
+	m = mean(target1);
+	int in1 = m[0] + m[1] + m[2];
+	m = mean(target2);
+	int in2 = m[0] + m[1] + m[2];
+	m = mean(target3);
+	int in3 = m[0] + m[1] + m[2];
+	m = mean(target4);
+	int in4 = m[0] + m[1] + m[2];
 
-    // Subtract, overwrite first.
-    subtract(targets[best1], targets[best2], targets[best1]);
+	int pair_1_2 = abs(in1 - in2);
+	int pair_1_3 = abs(in1 - in3);
+	int pair_1_4 = abs(in1 - in4);
+	int pair_2_3 = abs(in2 - in3);
+	int pair_2_4 = abs(in2 - in4);
+	int pair_3_4 = abs(in3 - in4);
 
-#ifndef ON_DEVICE
-    imshow("subtract", targets[best1]);
-#endif
+	//imwrite("/sdcard/vmimo-frame1.bmp", target1);
+	//imwrite("/sdcard/vmimo-frame2.bmp", target2);
+	//imwrite("/sdcard/vmimo-frame3.bmp", target3);
+	//imwrite("/sdcard/vmimo-frame4.bmp", target4);
+	Mat *good_image1;
+	Mat *good_image2;
+	if (pair_1_2 > pair_1_3
+		  && pair_1_2 > pair_1_4
+		  && pair_1_2 > pair_2_3
+		  && pair_1_2 > pair_2_4
+		  && pair_1_2 > pair_3_4) {
+	  if (in1 < in2) {
+		  good_image1 = &target1;
+		  good_image2 = &target2;
+	  } else {
+		  good_image1 = &target2;
+		  good_image2 = &target1;
+	  }
+	  debug_log_print("NDK:LC: 1 and 2");
+	} else if (pair_1_3 > pair_1_4
+		  && pair_1_3 > pair_2_3
+		  && pair_1_3 > pair_2_4
+		  && pair_1_3 > pair_3_4) {
+	  if (in1 < in3) {
+		  good_image1 = &target1;
+		  good_image2 = &target3;
+	  } else {
+		  good_image1 = &target3;
+		  good_image2 = &target1;
+	  }
+	  debug_log_print("NDK:LC: 1 and 3");
+	} else if (pair_1_4 > pair_2_3
+		  && pair_1_4 > pair_2_4
+		  && pair_1_4 > pair_3_4) {
+	  if (in1 < in4) {
+		  good_image1 = &target1;
+		  good_image2 = &target4;
+	  } else {
+		  good_image1 = &target4;
+		  good_image2 = &target1;
+	  }
+	  debug_log_print("NDK:LC: 1 and 4");
+	} else if (pair_2_3 > pair_2_4
+		  && pair_2_3 > pair_3_4) {
+	  if (in2 < in3) {
+		  good_image1 = &target2;
+		  good_image2 = &target3;
+	  } else {
+		  good_image1 = &target3;
+		  good_image2 = &target2;
+	  }
+	  debug_log_print("NDK:LC: 2 and 3");
+	} else if (pair_2_4 > pair_3_4) {
+	  if (in2 < in4) {
+		  good_image1 = &target2;
+		  good_image2 = &target4;
+	  } else {
+		  good_image1 = &target4;
+		  good_image2 = &target2;
+	  }
+	  debug_log_print("NDK:LC: 2 and 4");
+	} else {
+	  if (in3 < in4) {
+		  good_image1 = &target3;
+		  good_image2 = &target4;
+	  } else {
+		  good_image1 = &target4;
+		  good_image2 = &target3;
+	  }
+	  debug_log_print("NDK:LC: 3 and 4");
+	}
 
-    extractMessage(targets[best1], message, width, height, width_blocks, height_blocks);
+	// good_image1 = &target3;
+	// good_image2 = &target2;
+	
+	// Histogram equalization.
+	// Optimally we'd apply the same transformation to each image, but this is pretty close.
+	// histogramEqualization(*good_image1);
+	// histogramEqualization(*good_image2);
 
-#ifndef ON_DEVICE
-    waitKey(0);
-#endif
-
-    return isOddFrame;
-  }
+	// Subtract, overwrite first.
+	// imshow("Best1", *good_image1);
+	// imshow("Best2", *good_image2);
+	imwrite("storage/emulated/0/Pictures/best1.png", *good_image1);
+	imwrite("storage/emulated/0/Pictures/best2.png", *good_image2);
+	//imwrite("best1.png", *good_image1);
+	//imwrite("best2.png", *good_image2);
+	// subtract(*good_image1, *good_image2, *good_image1);
+	
+	// imshow("Subtract", *good_image1);
+	imwrite("storage/emulated/0/Pictures/subtract.png", *good_image1);
+	// imwrite("subtract.png", *good_image1);
+	// waitKey(0);
+	
+	extractMessage(*good_image1, message, width, height, width_blocks, height_blocks, 0);
+	
+}
 }

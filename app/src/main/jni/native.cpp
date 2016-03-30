@@ -12,89 +12,116 @@
 #include "image_processing.h"
 #include "android_compat.h"
 
-#define NUM_FRAMES 6
-
 using namespace cv;
 
 extern "C" {
-  /**
+    /**
 	 * Determines two frames with most differing average intensity.
-   * Subtracts frame2 from frame1, overwriting frame1
-   */
-  JNIEXPORT jobject Java_com_android_visualmimo_FrameProcessing_frameSubtraction(JNIEnv *env,
-      jobject obj, jobjectArray frames, jint width, jint height, jobjectArray cornersArray)
-  {
+     * Subtracts frame2 from frame1, overwriting frame1
+     */
+    JNIEXPORT jbooleanArray Java_com_android_visualmimo_FrameProcessing_frameSubtraction(JNIEnv *env, jobject obj,
+        jbyteArray frame1, jbyteArray frame2, jbyteArray frame3, jbyteArray frame4,
+        jint width, jint height,
+        jfloat c0x1, jfloat c0y1,
+        jfloat c1x1, jfloat c1y1,
+        jfloat c2x1, jfloat c2y1,
+        jfloat c3x1, jfloat c3y1,
 
-    Mat matImages[NUM_FRAMES];
-    float corners[NUM_FRAMES][8];
-    for (int i = 0; i < NUM_FRAMES; i++) {
-      jbyteArray frame = (jbyteArray) env->GetObjectArrayElement(frames, i);
+        jfloat c0x2, jfloat c0y2,
+        jfloat c1x2, jfloat c1y2,
+        jfloat c2x2, jfloat c2y2,
+        jfloat c3x2, jfloat c3y2,
+
+        jfloat c0x3, jfloat c0y3,
+        jfloat c1x3, jfloat c1y3,
+        jfloat c2x3, jfloat c2y3,
+        jfloat c3x3, jfloat c3y3,
+
+        jfloat c0x4, jfloat c0y4,
+        jfloat c1x4, jfloat c1y4,
+        jfloat c2x4, jfloat c2y4,
+        jfloat c3x4, jfloat c3y4
+        )
+    {
+      //f1 and f2 are the byte data of the two frames, l1 and l2 are the array lengths
+      jbyte* f1 = env->GetByteArrayElements(frame1, NULL);
+      jbyte* f2 = env->GetByteArrayElements(frame2, NULL);
+      jbyte* f3 = env->GetByteArrayElements(frame3, NULL);
+      jbyte* f4 = env->GetByteArrayElements(frame4, NULL);
+      jsize l1 = env->GetArrayLength(frame1);
 
       // Create OpenCV matrix from 1D array.
-      Mat matImage1D = Mat(env->GetArrayLength(frame), 1, CV_8UC1, (unsigned char *) env->GetByteArrayElements(frame, NULL));
+      Mat matImage1(l1, 1, CV_8UC1, (unsigned char *)f1);
+      Mat matImage2(l1, 1, CV_8UC1, (unsigned char *)f2);
+      Mat matImage3(l1, 1, CV_8UC1, (unsigned char *)f3);
+      Mat matImage4(l1, 1, CV_8UC1, (unsigned char *)f4);
 
       // Reshape matrix. 3 layers, correct height.
-      // NOTE: still needs to be flipped and have colors reordered (see MATLAB script).
-      //       This doesn't strictly matter for message extraction though.
-      matImages[i] = matImage1D.reshape(3, height);
+      // NOTE(revan): still needs to be flipped and have colors reordered (see MATLAB script).
+	  //              This doesn't matter for message extraction though.
+      Mat reshapedImage1 = matImage1.reshape(3, height);
+      Mat reshapedImage2 = matImage2.reshape(3, height);
+      Mat reshapedImage3 = matImage3.reshape(3, height);
+      Mat reshapedImage4 = matImage4.reshape(3, height);
 
-      jfloatArray frameCorners = (jfloatArray) env->GetObjectArrayElement(cornersArray, i);
-      float* cornerSet = (float*) env->GetFloatArrayElements(frameCorners, NULL);
-      std::copy(cornerSet, cornerSet + 8, corners[i]);
-      env->ReleaseFloatArrayElements(frameCorners, cornerSet, JNI_ABORT);
+	// Extract message
+	int width_blocks = 10;
+	int height_blocks = 8;
+	int num_blocks = width_blocks * height_blocks;
+
+	jboolean message[num_blocks];
+	processFrames(reshapedImage1, reshapedImage2, reshapedImage3, reshapedImage4, width, height, message, width_blocks, height_blocks, c0x1,c0y1,c1x1,c1y1,c2x1,c2y1,c3x1,c3y1,c0x2,c0y2,c1x2,c1y2,c2x2,c2y2,c3x2,c3y2,c0x3,c0y3,c1x3,c1y3,c2x3,c2y3,c3x3,c3y3,c0x4,c0y4,c1x4,c1y4,c2x4,c2y4,c3x4,c3y4);
+
+
+	// return message
+	jbooleanArray message_jboolean = env->NewBooleanArray(num_blocks);
+
+	env->SetBooleanArrayRegion(message_jboolean, 0, num_blocks, message);
+	// for (int i = 0; i < num_blocks; i++) {
+	// 	message_jboolean[i] = num_blocks;
+	// }
+
+	// Save to file
+	//      flip(reshapedImage1.t(), reshapedImage1, 1);
+	//flip(target1.t(), target1, 1);
+	//imwrite("/sdcard/vmimo-orig.bmp", reshapedImage1);
+	//      imwrite("/sdcard/vmimo-subtract.bmp", target1);
+
+	// imwrite("/sdcard/vmimo1.bmp", reshapedImage1);
+	// imwrite("/sdcard/vmimo2.bmp", reshapedImage2);
+	// imwrite("/sdcard/vmimo3.bmp", reshapedImage3);
+	// imwrite("/sdcard/vmimo4.bmp", reshapedImage4);
+	// char buffer [1000];
+	// sprintf(buffer, "%f\n%f\n%f\n%f\n%f\n%f\n%f\n%f\n\n%f\n%f\n%f\n%f\n%f\n%f\n%f\n%f\n\n%f\n%f\n%f\n%f\n%f\n%f\n%f\n%f\n\n%f\n%f\n%f\n%f\n%f\n%f\n%f\n%f\n\n",
+	// 	c0x1, c0y1,
+ //        c1x1, c1y1,
+ //        c2x1, c2y1,
+ //        c3x1, c3y1,
+
+ //        c0x2, c0y2,
+ //        c1x2, c1y2,
+ //        c2x2, c2y2,
+ //        c3x2, c3y2,
+
+ //        c0x3, c0y3,
+ //        c1x3, c1y3,
+ //        c2x3, c2y3,
+ //        c3x3, c3y3,
+
+ //        c0x4, c0y4,
+ //        c1x4, c1y4,
+ //        c2x4, c2y4,
+ //        c3x4, c3y4);
+	// debug_log_print(buffer);
+	// sprintf(buffer, "width:%d, height:%d\n", width, height);
+	// debug_log_print(buffer);
+
+	// last arg: 0 -> copy array back, JNI_ABBORT -> don't copy
+	env->ReleaseByteArrayElements(frame1, f1, JNI_ABORT);
+	env->ReleaseByteArrayElements(frame2, f2, JNI_ABORT);
+	env->ReleaseByteArrayElements(frame3, f2, JNI_ABORT);
+	env->ReleaseByteArrayElements(frame4, f2, JNI_ABORT);
+
+	return message_jboolean;
     }
-
-    // Extract message
-    int width_blocks = 10;
-    int height_blocks = 8;
-    int num_blocks = width_blocks * height_blocks - 4; // - 4 for the four corners
-
-    jboolean message[num_blocks];
-    jboolean isOddFrame = processFrames(
-        matImages,
-        width,
-        height,
-        message,
-        width_blocks,
-        height_blocks,
-        corners);
-
-
-    // return message
-    jbooleanArray message_jboolean = env->NewBooleanArray(num_blocks);
-    env->SetBooleanArrayRegion(message_jboolean, 0, num_blocks, message);
-
-
-    #ifdef WRITE_FRAMES
-    char strbuff[800];
-    // Save to disk for simulator use
-    for (int i = 0; i < NUM_FRAMES; i++) {
-      sprintf(strbuff, "/sdcard/vmimo%d.bmp", i);
-      imwrite(strbuff, matImages[i]);
-    }
-
-    for (int i = 0; i < NUM_FRAMES; i++) {
-      sprintf(strbuff, "{\n%f,\n%f,\n%f,\n%f,\n%f,\n%f,\n%f,\n%f\n},",
-              corners[i][0], corners[i][1], corners[i][2], corners[i][3],
-              corners[i][4], corners[i][5], corners[i][6], corners[i][7]);
-      debug_log_print(strbuff);
-    }
-
-    sprintf(strbuff, "width:%d, height:%d\n", width, height);
-    debug_log_print(strbuff);
-    #endif
-
-    jclass cls = env->FindClass("com/android/visualmimo/NDKResult");
-    jmethodID methodId = env->GetMethodID(cls, "<init>", "(Z[Z)V"); //[Z for bool array, Z for bool
-    jobject ret = env->NewObject(cls, methodId, isOddFrame, message_jboolean);
-
-    //TODO figure out if this causes crashes
-    // last arg: 0 -> copy array back, JNI_ABBORT -> don't copy
-    // env->ReleaseByteArrayElements(frame1, f1, JNI_ABORT);
-    // env->ReleaseByteArrayElements(frame2, f2, JNI_ABORT);
-    // env->ReleaseByteArrayElements(frame3, f2, JNI_ABORT);
-    // env->ReleaseByteArrayElements(frame4, f2, JNI_ABORT);
-
-    return ret;
-  }
 }
