@@ -7,7 +7,7 @@ function [ message ] = sample(imageId, messages, alpha, fps, height, width)
 %          defaults to {'abcdefghij'}
 
 if ~exist('alpha', 'var'), alpha = 10; end
-if ~exist('fps', 'var'), fps = 14; end
+if ~exist('fps', 'var'), fps = 10; end
 if ~exist('height', 'var'), height = 448; end
 if ~exist('width', 'var'), width = 560; end
 

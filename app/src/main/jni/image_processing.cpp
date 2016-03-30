@@ -16,42 +16,75 @@ extern "C" {
   /**
    * Extracts a message from image. Iterates through ROI grid, using average to
    * determine on/off state.
-   * Returns: number of mismatches
    */
-  int extractMessage(Mat &image, unsigned char *payload,
-                      const int width, const int height,
-                      const int width_blocks, const int height_blocks) {
+  double arrayMedian(double nums[]){
+    int i, j, numsSize = 0;
+    double median, temp = 0.0;
+    double* arr = new double[80];
+    numsSize = 80;
+
+    for(i = 0; i < numsSize; i ++){
+      arr[i] = nums[i];
+    }
+
+    for(i = 0; i < numsSize; i ++){
+      for(j = i + 1; j < numsSize; j ++){
+        if(arr[j] <= arr[i]){
+          temp = arr[i];
+          arr[i] = arr[j];
+          arr[j] = temp;
+        }
+      }
+    }
+
+    if(numsSize % 2 != 0) median = arr[numsSize / 2];
+    else median = ((arr[(numsSize - 1) / 2] + arr[(numsSize + 1) / 2])/2);
+    return median;
+  }
+
+  /**
+   *
+   */
+  void findBlockDeltas(Mat &image, double *deltas,
+                        const int width, const int height,
+                        const int width_blocks, const int height_blocks) {
     double deltas_buff[width_blocks * height_blocks];
-    double deltas[width_blocks * height_blocks];
     const int block_width = width / width_blocks;
     const int block_height = height / height_blocks;
-    int mismatches = 0;
 
-    // Threshold for message extraction is average intensity of difference.
-    Scalar m = mean(image);
-    const double threshold = m[0] + m[1] + m[2];
+    double* m = new double[height_blocks*width_blocks];
 
-    char buff[1000];
-    sprintf(buff, "NDK:LC: [threshold: %f]", threshold);
-    debug_log_print(buff);
+    Mat spl[3];
+    split(image,spl);
 
+    Mat image_mag = image;
     int k = 0;
     for (int i = 0; i < height; i += block_height) {
       for (int j = 0; j < width; j += block_width) {
-        // Get region of interest
-        Mat block = image(Rect(i, j, block_height, block_width));
-        Scalar m = mean(block);
-        deltas_buff[k++] = (m[0] + m[1] + m[2]) - threshold;
+        double numDistances = block_width * block_height;
+        double total = 0.0;
 
-//#ifndef ON_DEVICE
-//         char strbuff[80];
-//         sprintf(strbuff, "%d", (m[0] + m[1] + m[2] > cutoff));
-//         debug_log_print(strbuff);
-//         imshow("patch", block);
-//         waitKey(0);
-//#endif
-
+        // This is the more correct way to do this.
+        for(int l = 0; l < block_width; l += 1){
+          for(int m = 0; m < block_height; m += 1){
+            Mat pixels = image_mag(Rect(i + m, j + l, 1, 1));
+            Scalar averages = mean(pixels);
+            total += sqrt( (averages[0] * averages[0]) + (averages[1] * averages[1]) + (averages[2] * averages[2]) );
+          }
+        }
+        m[k] = total / numDistances;
+        k = k + 1;
       }
+    }
+
+    const double cutoff = arrayMedian(m);
+
+//    for(int l = 0; l < 80; l ++){
+//      std::cout << "val " << m[l] << std::endl;
+//    }
+//    std::cout << "Total number of blocks: " << k << std::endl;
+    for (int block_idx = 0; block_idx < k; block_idx ++){
+      deltas_buff[block_idx] = m[block_idx] - cutoff;
     }
 
     // reorder message correctly
@@ -66,12 +99,27 @@ extern "C" {
       }
     }
 
+
+  }
+
+  /**
+   * Extracts a message from image. Iterates through ROI grid, using average to
+   * determine on/off state.
+   */
+  int extractMessage(Mat &image, unsigned char *payload,
+                     const int width, const int height,
+                     const int width_blocks, const int height_blocks) {
+    char buff[1000];
+    double deltas[width_blocks * height_blocks];
+    int mismatches = 0;
+
+    findBlockDeltas(image, deltas, width, height, width_blocks, height_blocks);
+
     sprintf(buff, "deltas:");
-    for (int i = 0; i < k; i++) {
+    for (int i = 0; i < width_blocks * height_blocks - 4; i++) {
       sprintf(buff, "%s, %f", buff, deltas[i]);
     }
     debug_log_print(buff);
-
 
     // from MATLAB: pattern = [index messagepattern invert(index) invert(messagepattern)];
     // extract payload from consensus doubling
@@ -117,7 +165,7 @@ extern "C" {
 
     // Threshold for message extraction is average intensity of difference.
     m = mean(diff);
-    double cutoff = m[0] + m[1] + m[2];
+    int cutoff = m[0] + m[1] + m[2];
     // debug_log_print("NDK:LC: [threshold: %d]", threshold);
 
     block = diff(Rect(0, 0, block_height, block_width));

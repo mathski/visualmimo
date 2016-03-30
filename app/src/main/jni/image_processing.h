@@ -11,4 +11,6 @@ extern "C" {
 
   struct NDK_RESULT processFrames(Mat (&matImages)[NUM_FRAMES], int width, int height, unsigned char *message,
                      int width_blocks, int height_blocks, float (&corners)[NUM_FRAMES][8]);
+
+  double arrayMedian(double nums[]);
 }

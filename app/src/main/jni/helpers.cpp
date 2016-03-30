@@ -1,27 +1,23 @@
-#include <stdlib.h>
 #include <cv.h>
 #include <highgui.h>
-
-#define DEBUG_TAG "NDK_VMIMO"
 
 using namespace cv;
 
 extern "C" {
-  /**
-   * Utility function for projectiveTransform().
-   * Sorts corners as: top left, top right, back right, back left.
-   */
-  void sortCorners(std::vector<cv::Point2f>& corners, cv::Point2f center)
-  {
+/**
+ * Utility function for projectiveTransform().
+ * Sorts corners as: top left, top right, back right, back left.
+ */
+void sortCorners(std::vector<cv::Point2f>& corners, cv::Point2f center)
+{
     std::vector<cv::Point2f> top, bot;
 
-    for (int i = 0; i < corners.size(); i++)
-      {
-        if (corners[i].y < center.y)
-          top.push_back(corners[i]);
-        else
-          bot.push_back(corners[i]);
-      }
+    for (int i = 0; i < corners.size(); i++) {
+      if (corners[i].y < center.y)
+        top.push_back(corners[i]);
+      else
+        bot.push_back(corners[i]);
+    }
 
     cv::Point2f tl = top[0].x > top[1].x ? top[1] : top[0];
     cv::Point2f tr = top[0].x > top[1].x ? top[0] : top[1];
@@ -33,7 +29,7 @@ extern "C" {
     corners.push_back(tr);
     corners.push_back(br);
     corners.push_back(bl);
-  }
+}
 
   /**
    * Performs projective transform on image. For given set of corners, skews
