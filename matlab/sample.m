@@ -44,7 +44,7 @@ end
 
 frames = [];
 for i = 1:4:length(messages)-3;
-    message = addIndexToPattern(asciiMessage(messages(i:i+3)), i-1);
+    message = addIndexToPattern(asciiMessage(messages(i:i+3)), (i-1)/4);
     
     % sync_bit for in-progress multiframe implementation
     parity_bit = mod((i-1)/4, 2);
