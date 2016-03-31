@@ -1,80 +1,69 @@
-function  [apple_base, appleEmbedded] = embedControllerImage(apple, varargin)
+function  [appleEmbedded] = embedControllerImage(baseImage, message, delta_length)
 %% [apple_base, appleEmbedded, mymap] = embedControllerImage(INPUT_IMAGE, MESSAGE(NxM matrix), DELTA_SIZE, BASE_COLOR_MAP, DELTA_COLOR_MAP)
     % matchPixelsAndEmbedImage takes a base image and generates a pair of 
     % embedded images, along with a colormap used to make movie frames.
 
 
     %% Defaults and Variable Inputs
-    
-    if nargin == 1 % Default message and step size
-        %%% Checkerboard Message
-        checkHeightBlocks = 8; %9  %CHANGED FOR DEBUGGING
-        checkWidthBlocks = 10; %16 %CHANGED FOR DEBUGGING
-        genCheck = double(checkerboard(1,checkHeightBlocks,checkWidthBlocks) > 0.5);
-        message = genCheck(1:(end/2),1:(end/2));
-        %%% Delta step size
-        delta_length = 5;
-        %%% recalculate colormap flag
+%     
+%     if nargin == 1 % Default message and step size
+%         %%% Checkerboard Message
+%         checkHeightBlocks = 8; %9  %CHANGED FOR DEBUGGING
+%         checkWidthBlocks = 10; %16 %CHANGED FOR DEBUGGING
+%         genCheck = double(checkerboard(1,checkHeightBlocks,checkWidthBlocks) > 0.5);
+%         message = genCheck(1:(end/2),1:(end/2));
+%         %%% Delta step size
+%         delta_length = 5;
+%         %%% recalculate colormap flag
+%         recal_colormap_flag = true;
+%     elseif nargin == 2 % Default Step Size
+%         %%% Checkerboard Message
+%         message = varargin{1};
+%         %%% Delta step size
+%         delta_length = 5;
+%         %%% recalculate colormap flag
         recal_colormap_flag = true;
-    elseif nargin == 2 % Default Step Size
-        %%% Checkerboard Message
-        message = varargin{1};
-        %%% Delta step size
-        delta_length = 5;
-        %%% recalculate colormap flag
-        recal_colormap_flag = true;
-    elseif nargin == 3 % Non Default Message and Step Size
-        %%% Checkerboard Message
-        message = varargin{1};
-        %%% Delta step size
-        delta_length = varargin{2};
-        %%% recalculate colormap flag
-        recal_colormap_flag = true;
-    elseif nargin == 5 % NON-default colormaps, message, and step size
-        %%% Checkerboard Message
-        message = varargin{1};
-        %%% Delta step size
-        delta_length = varargin{2};
-        %%% Base colormap
-        mymap_base = varargin{3};
-        %%% Delta colormap
-        mymap_delta = varargin{4};
-        %%% recalculate colormap flag
-        recal_colormap_flag = false;
-    else
-        disp('Wrong number of inputs')
-        return
-    end
-    
+%     elseif nargin == 3 % Non Default Message and Step Size
+%         %%% Checkerboard Message
+%         message = varargin{1};
+%         %%% Delta step size
+%         delta_length = varargin{2};
+%         %%% recalculate colormap flag
+%         recal_colormap_flag = true;
+%     elseif nargin == 5 % NON-default colormaps, message, and step size
+%         %%% Checkerboard Message
+%         message = varargin{1};
+%         %%% Delta step size
+%         delta_length = varargin{2};
+%         %%% Base colormap
+%         mymap_base = varargin{3};
+%         %%% Delta colormap
+%         mymap_delta = varargin{4};
+%         %%% recalculate colormap flag
+%         recal_colormap_flag = false;
+%     else
+%         disp('Wrong number of inputs')
+%         return
+%     end
+%     
         %% Resize input image to convenient size
    
-        [checkHeightBlocks,checkWidthBlocks] = size(message);
+        [checkHeightBlocks,checkWidthBlocks] = size(message)
     
-        img_size = size(apple); %%%%%%%%%%%%% 360 x 640%%%%%%%%%%%%%%%%
+        img_size = size(baseImage) %%%%%%%%%%%%% 360 x 640%%%%%%%%%%%%%%%%
         imheight = checkHeightBlocks*70;
         imwidth = checkWidthBlocks*70;
         if(img_size >= [imheight,imwidth,3])
             scale = max([imheight,imwidth]./img_size(1:2));
-            apple = imresize(apple,scale);
-            apple = apple(1:imheight,1:imwidth,:);
-            apple = double(apple)/255;
+            baseImage = imresize(baseImage,scale);
+            baseImage = baseImage(1:imheight,1:imwidth,:);
+            baseImage = double(baseImage)/255;
         else
             disp('Image too small!')
             return
         end
-        %{
-        img_size = size(apple);
-        if(img_size >= [1152,2644,3])
-            scale = max([1152,2644]./img_size(1:2));
-            apple = imresize(apple,scale);
-            apple = apple(1:1152,1:2644,:);
-            apple = double(apple)/255;
-        else
-            disp('Image too small!')
-            return
-        end
-        %}
-        
+       
+
     % Histogram Equalize Image
 %     apple_hsv = rgb2hsv(apple);
 %     apple_hsv_eq = histeq(apple_hsv(:,:,3));
@@ -82,7 +71,7 @@ function  [apple_base, appleEmbedded] = embedControllerImage(apple, varargin)
 %     apple_rgb = hsv2rgb(apple_hsv);
 %     apple = apple_rgb;
     
-    [imgHeight,imgWidth,~]=size(apple);
+    [imgHeight,imgWidth,~]=size(baseImage);
     checkPixelSize = imgHeight/checkHeightBlocks;
         
     %% Load Training Data - Labeled Color Pairs
@@ -125,7 +114,7 @@ function  [apple_base, appleEmbedded] = embedControllerImage(apple, varargin)
         mymap_base = unique_map(:,1:3);
     end
 
-    appleind = rgb2ind(apple,mymap_base,'nodither');
+    appleind = rgb2ind(baseImage,mymap_base,'nodither');
     apple_base = ind2rgb(appleind,mymap_base);
     
     %% Embed normalized delta length
@@ -135,20 +124,6 @@ function  [apple_base, appleEmbedded] = embedControllerImage(apple, varargin)
     end
     apple_delta = ind2rgb(appleind,mymap_delta);
     
-    %{
-    delta_size = (delta_length/255);
-    % NOT SUBTRACTING DELTA, INSTEAD OF ADDING
-    for i = 1:length(mymap_delta)
-        x = mymap_delta(i,1);
-        y = mymap_delta(i,2);
-        z = mymap_delta(i,3);
-        individual_delta_length = delta_size ./ sqrt(x^2+y^2+z^2);
-        mymap_delta(i,1:3) = individual_delta_length.*[x,y,z]';
-    end
-    
-    apple_delta = ind2rgb(appleind,mymap_delta);
-    %}
-
     
     %% Create Blended Checkrerboard Pattern
     % Create blending mask
@@ -223,10 +198,10 @@ function  [apple_base, appleEmbedded] = embedControllerImage(apple, varargin)
     end
     end
     
-    figure,imshow(blurred)
+%     figure,imshow(blurred)
     
     %% Embedd checkerboard pattern via addition
-    appleEmbedded = zeros(size(apple));
+    appleEmbedded = zeros(size(baseImage));
     for i = 1:3 %For each of 3 RGB color channels
         appleEmbedded(:,:,i) = apple_base(:,:,i) + blurred.*apple_delta(:,:,i)*delta_length;    
     end
@@ -234,12 +209,11 @@ function  [apple_base, appleEmbedded] = embedControllerImage(apple, varargin)
     %% Bound RGB values between [0.0 1.0] After Embedding
     appleEmbedded(appleEmbedded<0.0) = 0.0;
     appleEmbedded(appleEmbedded>1.0) = 1.0;
-
     
-    figure, imshow(apple_base)
+%     figure, imshow(apple_base)
     %% Generate video for human vision tests
     % :2:totalFrames
-    %%{
+    %{
     fps = 6;
     durration = 10; %video durration in seconds
     numFrames = fps*durration;
@@ -256,4 +230,4 @@ function  [apple_base, appleEmbedded] = embedControllerImage(apple, varargin)
     writeFrames(frames, 'sampleVid.avi', fps);
     
     figure(200), movie(frames,numFrames,fps);
-    %%}
+    %}

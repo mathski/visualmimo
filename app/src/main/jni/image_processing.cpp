@@ -292,8 +292,8 @@ extern "C" {
 
     // Histogram equalization.
     // Optimally we'd apply the same transformation to each image, but this is pretty close.
-    histogramEqualization(targets[best1]);
-    histogramEqualization(targets[best2]);
+//    histogramEqualization(targets[best1]);
+//    histogramEqualization(targets[best2]);
 
     // Subtract, overwrite first.
     subtract(targets[best1], targets[best2], targets[best1]);
