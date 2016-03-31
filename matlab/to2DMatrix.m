@@ -3,10 +3,14 @@ function [message] = to2DMatrix(message)
 A(1:8,1:10) = double(0);
 k = 1;
 
-for i = 1:numel(A),
-    A(i) = message(i);
-    k = k + 1;
-end;
+i = 1;
+for h = 1:8,
+    for w = 1:10,
+       temp = message(i);
+      A(h,w) = temp;
+      i = i + 1;
+   end 
+end
 
 
 message = A
