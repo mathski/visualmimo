@@ -12,7 +12,7 @@ public class MessageCache {
      * A hardcoded number of messages.
      * TODO: switch to some known "start" pattern to support variable length.
      */
-    public static final int NUM_MESSAGES = 4;
+    public static final int NUM_MESSAGES = 3;
     public static final int MESSAGE_BITS = 4 * 7;
     private int size = 0;
 

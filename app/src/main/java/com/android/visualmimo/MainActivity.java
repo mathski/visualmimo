@@ -81,12 +81,17 @@ public class MainActivity extends VuforiaActivity implements Callback{
 			@Override
 			public void onClick(View v) {
 				MessageCache.getInstance().reset();
-				((TextView) findViewById(R.id.decoded_data)).setText("");
+				//((TextView) findViewById(R.id.decoded_data)).setText("");
+				((TextView) findViewById(R.id.message)).setText("");
+				((TextView) findViewById(R.id.message_beginning)).setText("");
 				findViewById(R.id.resume_button).setVisibility(View.INVISIBLE);
 				vuforiaAppSession.mGlView.setVisibility(View.VISIBLE);
 				vuforiaAppSession.mGlView.onResume();
 			}
 		});
+
+
+
 	}
 
 	/** GestureListener for tap to focus. */
@@ -106,6 +111,9 @@ public class MainActivity extends VuforiaActivity implements Callback{
 				public void run() {
 					boolean result = CameraDevice.getInstance().setFocusMode(
 							CameraDevice.FOCUS_MODE.FOCUS_MODE_TRIGGERAUTO);
+
+					CameraDevice.getInstance().setFocusMode(
+							CameraDevice.FOCUS_MODE.FOCUS_MODE_NORMAL);
 
 					if (!result)
 						Log.e("SingleTapUp", "Unable to trigger focus");
@@ -205,27 +213,6 @@ public class MainActivity extends VuforiaActivity implements Callback{
 			case R.id.action_save:
 				handleSaveButton();
 				return true;
-			case R.id.action_whiteboard:
-				handleWhiteboardButton();
-				return true;
-			case R.id.action_album:
-				handleDemoButton();
-				return true;
-
-			case R.id.action_idle_fps:
-				idleBenchMode = true;
-				benchingInProgress = true;
-				frameCount = -1;
-				return true;
-
-			case R.id.action_load_fps:
-				idleBenchMode = false;
-				benchingInProgress = true;
-				frameCount = -1;
-				return true;
-			case R.id.action_analytics:
-				startActivity(new Intent(getApplicationContext(), AnalyticsLogin.class));
-				return true;
 
 			default:
 				return super.onOptionsItemSelected(item);
@@ -316,8 +303,10 @@ public class MainActivity extends VuforiaActivity implements Callback{
 						}
 					}));
 		}
-		
+
+		((TextView) findViewById(R.id.message_beginning)).setText("The following message was extracted:");
 		((TextView) findViewById(R.id.message)).setText(extracted.message);
+		findViewById(R.id.loading_indicator).setVisibility(View.INVISIBLE);
 		findViewById(R.id.resume_button).setVisibility(View.VISIBLE);
 		vuforiaAppSession.mGlView.setVisibility(View.INVISIBLE);
 		vuforiaAppSession.mGlView.onPause();

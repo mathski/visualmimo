@@ -1,6 +1,7 @@
 #include <cmath>
 #include <cv.h>
 #include <highgui.h>
+#include <cstring>
 
 #include "helpers.h"
 #include "android_compat.h"
@@ -17,18 +18,16 @@ extern "C" {
    * Extracts a message from image. Iterates through ROI grid, using average to
    * determine on/off state.
    */
-  double arrayMedian(double nums[]){
+  double arrayMedian(double *nums, int size){
     int i, j, numsSize = 0;
-    double median, temp = 0.0;
-    double* arr = new double[80];
-    numsSize = 80;
+    double temp = 0.0;
+    double arr[size];
 
-    for(i = 0; i < numsSize; i ++){
-      arr[i] = nums[i];
-    }
+    memcpy(&arr, nums, size * sizeof(double)); // Duplicate the array so we can sort without issue.
 
-    for(i = 0; i < numsSize; i ++){
-      for(j = i + 1; j < numsSize; j ++){
+
+    for(i = 0; i < size; i ++){
+      for(j = i + 1; j < size; j ++){
         if(arr[j] <= arr[i]){
           temp = arr[i];
           arr[i] = arr[j];
@@ -37,9 +36,8 @@ extern "C" {
       }
     }
 
-    if(numsSize % 2 != 0) median = arr[numsSize / 2];
-    else median = ((arr[(numsSize - 1) / 2] + arr[(numsSize + 1) / 2])/2);
-    return median;
+    if(size % 2 != 0) return arr[size / 2];
+    return ((arr[(size - 1) / 2] + arr[(size + 1) / 2])/2);
   }
 
   /**
@@ -52,7 +50,7 @@ extern "C" {
     const int block_width = width / width_blocks;
     const int block_height = height / height_blocks;
 
-    double* m = new double[height_blocks*width_blocks];
+    double m[height_blocks*width_blocks];
 
     Mat spl[3];
     split(image,spl);
@@ -77,12 +75,8 @@ extern "C" {
       }
     }
 
-    const double cutoff = arrayMedian(m);
+    const double cutoff = arrayMedian(m, 80);
 
-//    for(int l = 0; l < 80; l ++){
-//      std::cout << "val " << m[l] << std::endl;
-//    }
-//    std::cout << "Total number of blocks: " << k << std::endl;
     for (int block_idx = 0; block_idx < k; block_idx ++){
       deltas_buff[block_idx] = m[block_idx] - cutoff;
     }
@@ -212,7 +206,7 @@ extern "C" {
     ins += m[0] + m[1] + m[2];
     m = mean(image(Rect(height-block_height, width-block_width, block_height, block_width)));
     ins += m[0] + m[1] + m[2];
-    
+
     return ins;
   }
 
@@ -285,8 +279,10 @@ extern "C" {
     debug_log_print(strbuff);
 
 #ifndef ON_DEVICE
-    imshow("best1", targets[best1]);
-    imshow("best2", targets[best2]);
+    #ifdef SHOW_IMAGES
+        imshow("best1", targets[best1]);
+        imshow("best2", targets[best2]);
+    #endif
 #endif
 
 
@@ -299,7 +295,9 @@ extern "C" {
     subtract(targets[best1], targets[best2], targets[best1]);
 
 #ifndef ON_DEVICE
-    imshow("subtract", targets[best1]);
+    #ifdef SHOW_IMAGES
+        imshow("subtract", targets[best1]);
+    #endif
 #endif
 
     int mismatches = extractMessage(targets[best1], payload, width, height, width_blocks, height_blocks);
