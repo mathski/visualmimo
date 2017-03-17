@@ -34,7 +34,7 @@ if ~exist('imageId', 'var'), imageId = '14'; end
 
 
 if ~exist('messages', 'var')
-    messages = 'abcdefghijklmnop';
+    messages = 'abcdefghijkl';
 end
 
 % pads messages with .'s to reach multiple of 4
